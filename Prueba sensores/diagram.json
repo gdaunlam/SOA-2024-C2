@@ -1,0 +1,53 @@
+{
+    "version": 1,
+    "author": "David Gomez",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "wokwi-breadboard-half", "id": "bb1", "top": 150.6, "left": -131.6, "attrs": {} },
+      {
+        "type": "board-esp32-devkit-c-v4",
+        "id": "esp",
+        "top": 180.74,
+        "left": -389.9,
+        "rotate": 90,
+        "attrs": {}
+      },
+      {
+        "type": "wokwi-hc-sr04",
+        "id": "ultrasonic1",
+        "top": 432.5,
+        "left": -41.1,
+        "rotate": 180,
+        "attrs": { "distance": "400" }
+      },
+      {
+        "type": "wokwi-dht22",
+        "id": "dht1",
+        "top": 310.2,
+        "left": 296.7,
+        "rotate": 90,
+        "attrs": {}
+      }
+    ],
+    "connections": [
+      [ "esp:TX", "$serialMonitor:RX", "", [] ],
+      [ "esp:RX", "$serialMonitor:TX", "", [] ],
+      [ "ultrasonic1:VCC", "bb1:18b.j", "red", [ "v0" ] ],
+      [ "ultrasonic1:TRIG", "bb1:17b.j", "green", [ "v0" ] ],
+      [ "ultrasonic1:ECHO", "bb1:16b.j", "green", [ "v0" ] ],
+      [ "ultrasonic1:GND", "bb1:15b.j", "black", [ "v0" ] ],
+      [ "bb1:15b.f", "bb1:tn.12", "black", [ "v0" ] ],
+      [ "esp:GND.1", "bb1:tn.11", "black", [ "v0" ] ],
+      [ "bb1:18b.i", "bb1:tp.5", "red", [ "v0" ] ],
+      [ "esp:VN", "bb1:tp.1", "red", [ "v0" ] ],
+      [ "esp:12", "bb1:16b.g", "green", [ "v0" ] ],
+      [ "esp:13", "bb1:17b.h", "green", [ "v-28.65", "h441.6" ] ],
+      [ "dht1:VCC", "bb1:24b.j", "red", [ "h0" ] ],
+      [ "bb1:24b.i", "bb1:tp.20", "red", [ "v0" ] ],
+      [ "dht1:SDA", "bb1:23b.j", "green", [ "h0" ] ],
+      [ "bb1:23b.h", "esp:32", "green", [ "v-67.2", "h-422.4" ] ],
+      [ "dht1:GND", "bb1:22b.j", "black", [ "h0" ] ],
+      [ "bb1:22b.g", "bb1:tn.18", "black", [ "v0" ] ]
+    ],
+    "dependencies": {}
+  }
