@@ -3,9 +3,9 @@
 #define PIN_TRIGGER_ULTRASONIDO 13  // Pin de Trig del sensor
 #define PIN_ECHO_ULTRASONIDO 12 // Pin de Echo del sensor
 #define PIN_DHT 32
+#define POT_PIN 25 // Pin al que está conectado el potenciómetro
 
 #include "DHTesp.h"   //Libreria de sensor de T y H
-
 
 DHTesp dht; //Instanciamos el DHT
 
@@ -33,11 +33,19 @@ long readUltrasonicDistance()
   return pulseIn(PIN_ECHO_ULTRASONIDO, HIGH);
 }
 
+int leerDatosPotenciometro(){
+  // Leer el valor del potenciómetro
+  int auxPpmValue = analogRead(POT_PIN);
+  // Mapear el valor del potenciómetro de 0 a 150
+  return map(auxPpmValue, 0, 4095, 0, 255);
+}
+
 void setup() {
   Serial.begin(115200);  
-  pinMode(PIN_TRIGGER_ULTRASONIDO, OUTPUT); // Configura el pin TRIG como salida
-  pinMode(PIN_ECHO_ULTRASONIDO, INPUT);  // Configura el pin ECHO como entrada
-  dht.setup(PIN_DHT, DHTesp::DHT22);
+  pinMode(PIN_TRIGGER_ULTRASONIDO, OUTPUT);
+  pinMode(PIN_ECHO_ULTRASONIDO, INPUT); 
+  pinMode(POT_PIN, INPUT); 
+  dht.setup(PIN_DHT, DHTesp::DHT22);  // Inicializar el sensor DHT
 }
 
 void loop() {
@@ -46,7 +54,6 @@ void loop() {
   TempAndHumidity dataDTH;
 
   // Calcula la distancia en centímetros (velocidad del sonido: 34300 cm/s)
-  //distance = 0.01723 * readUltrasonicDistance();
   distance = 0.017 * readUltrasonicDistance();
   dataDTH = readDHT();
 
@@ -59,6 +66,8 @@ void loop() {
   Serial.println("Temperatura: " + String(dataDTH.temperature, 2) + "°C");
   Serial.println("Humedad: " + String(dataDTH.humidity, 1) + "%");
   Serial.println("---");
-
-  delay(500); // Espera un segundo antes de medir nuevamente
+  Serial.print("CO2 (ppm):");
+  int ppm = leerDatosPotenciometro();
+  Serial.println(ppm);
+  delay(1000); // Espera un segundo antes de medir nuevamente
 }
