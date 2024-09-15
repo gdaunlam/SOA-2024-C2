@@ -1,10 +1,15 @@
 //URL: https://wokwi.com/projects/408520560202539009
 
+
 #define PIN_TRIGGER_ULTRASONIDO 13  // Pin de Trig del sensor
 #define PIN_ECHO_ULTRASONIDO 12 // Pin de Echo del sensor
 #define PIN_DHT 32
 #define POT_PIN 25 // Pin al que está conectado el potenciómetro
 #define PIN_BUZZER 26
+#define PIN_RELAY 14
+#define PIN_LED_RED 23
+#define PIN_LED_BLUE 18
+#define PIN_LED_GREEN 22
 
 #include "DHTesp.h"   //Libreria de sensor de T y H
 
@@ -20,6 +25,18 @@ void turnOffBuzzer(){
   //Depende de la humedad
   digitalWrite(PIN_BUZZER, LOW);
   Serial.println("Buzzer apagado.");
+}
+
+void turnOnRelay(){
+  //Depende de la humedad
+  digitalWrite(PIN_RELAY, HIGH);
+  Serial.println("Rele prendido.");
+}
+
+void turnOffRelay(){
+  //Depende de la humedad
+  digitalWrite(PIN_RELAY, LOW);
+  Serial.println("Rele apagado.");
 }
 
 TempAndHumidity readDHT(){
@@ -53,12 +70,23 @@ int leerDatosPotenciometro(){
   return map(auxPpmValue, 0, 4095, 0, 255);
 }
 
+void setColorLed(int red, int green, int blue) {
+  delay(3000);
+  analogWrite(PIN_LED_RED, red);
+  analogWrite(PIN_LED_GREEN, green);
+  analogWrite(PIN_LED_BLUE, blue);
+}
+
 void setup() {
   Serial.begin(115200);  
   pinMode(PIN_TRIGGER_ULTRASONIDO, OUTPUT);
   pinMode(PIN_ECHO_ULTRASONIDO, INPUT); 
   pinMode(POT_PIN, INPUT); 
   pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_RELAY, OUTPUT);
+  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_BLUE, OUTPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT);
   dht.setup(PIN_DHT, DHTesp::DHT22);  // Inicializar el sensor DHT
 }
 
@@ -80,9 +108,16 @@ void loop() {
   float temperatura = dataDTH.temperature;
   if(temperatura >50){
     turnOnBuzzer();
+    turnOnRelay();
   } else {
     turnOffBuzzer();
+    turnOffRelay();
   }
+
+  setColorLed(255,0,0); //Rojo
+  setColorLed(255,165,0); //Naranja
+  setColorLed(255,255,0); //Amarillo
+  setColorLed(0,255,0); //Verde
 
   Serial.println("Temperatura: " + String(dataDTH.temperature, 2) + "°C");
   Serial.println("Humedad: " + String(dataDTH.humidity, 1) + "%");
