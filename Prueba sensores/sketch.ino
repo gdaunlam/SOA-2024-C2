@@ -4,10 +4,23 @@
 #define PIN_ECHO_ULTRASONIDO 12 // Pin de Echo del sensor
 #define PIN_DHT 32
 #define POT_PIN 25 // Pin al que está conectado el potenciómetro
+#define PIN_BUZZER 26
 
 #include "DHTesp.h"   //Libreria de sensor de T y H
 
 DHTesp dht; //Instanciamos el DHT
+
+void turnOnBuzzer(){
+  //Depende de la humedad
+  digitalWrite(PIN_BUZZER, HIGH);
+  Serial.println("Buzzer prendido.");
+}
+
+void turnOffBuzzer(){
+  //Depende de la humedad
+  digitalWrite(PIN_BUZZER, LOW);
+  Serial.println("Buzzer apagado.");
+}
 
 TempAndHumidity readDHT(){
   return dht.getTempAndHumidity();
@@ -45,6 +58,7 @@ void setup() {
   pinMode(PIN_TRIGGER_ULTRASONIDO, OUTPUT);
   pinMode(PIN_ECHO_ULTRASONIDO, INPUT); 
   pinMode(POT_PIN, INPUT); 
+  pinMode(PIN_BUZZER, OUTPUT);
   dht.setup(PIN_DHT, DHTesp::DHT22);  // Inicializar el sensor DHT
 }
 
@@ -63,6 +77,13 @@ void loop() {
   Serial.println(" cm");
   Serial.println("---");
   // Imprime la temperatura y humedad actual
+  float temperatura = dataDTH.temperature;
+  if(temperatura >50){
+    turnOnBuzzer();
+  } else {
+    turnOffBuzzer();
+  }
+
   Serial.println("Temperatura: " + String(dataDTH.temperature, 2) + "°C");
   Serial.println("Humedad: " + String(dataDTH.humidity, 1) + "%");
   Serial.println("---");
