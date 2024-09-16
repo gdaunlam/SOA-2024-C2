@@ -1,140 +1,209 @@
+#include "DHTesp.h"
+
+const int TEMPERATURE_HIGH = 35;
+const int CO2_HIGH = 5;
+const int MIN_HUMIDITY_HIGH = 20;
+const int MAX_HUMIDITY_HIGH = 70;
+
+const int TEMPERATURE_MID = 27;
+const int CO2_MID = 2;
+const int MIN_HUMIDITY_MID = 30;
+const int MAX_HUMIDITY_MID = 60;
+
+const int TEMPERATURE_LOW = 24;
+const int CO2_LOW = 1;
+const int MIN_HUMIDITY_LOW = 35;
+const int MAX_HUMIDITY_LOW = 50;
+const int DISTANCE_LOW = 5;
+
 typedef int STATE;
-const STATE LOW_STATE = 0;
-const STATE MEDIUM_STATE = 1;
-const STATE HIGH_STATE = 2;
-const STATE CRITICAL_STATE = 3;
-const int MAX_STATES = 4;
+const STATE INIT_STATE = 0;
+const STATE LOW_STATE = 1;
+const STATE MEDIUM_STATE = 2;
+const STATE HIGH_STATE = 3;
+const STATE CRITICAL_STATE = 4;
+const int MAX_STATES = 5;
 
 typedef int EVENT;
-const EVENT LOW_CONDITION_EVENT = 0;
-const EVENT MID_CONDITION_EVENT = 1;
-const EVENT HIGHT_CONDITION_EVENT = 2;
-const EVENT CRITICAL_CONDITION_EVENT = 3;
-const int MAX_EVENTS = 4;
+const EVENT INIT_CONDITION_EVENT = 0;
+const EVENT LOW_CONDITION_EVENT = 1;
+const EVENT MID_CONDITION_EVENT = 2;
+const EVENT HIGH_CONDITION_EVENT = 3;
+const EVENT CRITICAL_CONDITION_EVENT = 4;
+const int MAX_EVENTS = 5;
 
 typedef int SENSOR;
-const SENSOR C02_SENSOR = 0;
+const SENSOR CO2_SENSOR = 0;
 const SENSOR DISTANCE_SENSOR = 1;
 const SENSOR TEMP_HUMIDITY_SENSOR = 2;
 const int SENSORS_COUNT = 3;
 
-STATE actualState = LOW_STATE;
-SENSOR actualSensor = C02_SENSOR;
-long DISTANCE_VALUE = 0; //TODO CM?
-long TEMPERATURE_VALUE = 0;
-long HUMIDITY_VALUE = 0;
-long C02_VALUE = 0;
+STATE currentState = INIT_STATE;
+STATE nextState = INIT_STATE;
+SENSOR currentSensor = CO2_SENSOR;
+long DISTANCE_VALUE = 0;
+float TEMPERATURE_VALUE = 0;
+float HUMIDITY_VALUE = 0;
+long CO2_VALUE = 0;
 
 typedef void (*transition)();
+void iToL() {
+  setColorLedGreen();
+  notify();
+  return;
+}
 void lToM() {
-  Serial.println("lToM");
+  setColorLedYellow();
+  notify();
   return;
 }
 void mToL() {
-  Serial.println("mToL");
+  setColorLedGreen();
+  notify();
   return;
 }
 void mToH() {
-  Serial.println("mToH");
+  turnOnRelay();
+  setColorLedOrange();
+  notify();
   return;
 }
 void hToM() {
-  Serial.println("hToM");
+  turnOffRelay();
+  setColorLedYellow();
+  notify();
   return;
 }
 void hToC() {
-  Serial.println("hToC");
+  turnOnBuzzer();
+  setColorLedRed();
+  notify();
   return;
 }
 void cToH() {
-  Serial.println("cToH");
+  turnOffBuzzer();
+  setColorLedOrange();
+  notify();
   return;
 }
 void none() {
-  Serial.println("none");
   return;
 }
 
 STATE state_table_next_state[MAX_STATES][MAX_EVENTS] =
 {
-  {LOW_STATE, MEDIUM_STATE, MEDIUM_STATE, MEDIUM_STATE }, //LOW_STATE
-  {LOW_STATE, MEDIUM_STATE, HIGH_STATE, HIGH_STATE}, //MEDIUM_STATE
-  {MEDIUM_STATE, MEDIUM_STATE, HIGH_STATE, CRITICAL_STATE}, //HIGH_STATE
-  {HIGH_STATE, HIGH_STATE, HIGH_STATE, CRITICAL_STATE }, //CRITICAL_STATE
-  //LOW_CONDITION_EVENT, MID_CONDITION_EVENT, HIGHT_CONDITION_EVENT, CRITICAL_CONDITION_EVENT
+  {LOW_STATE, LOW_STATE, LOW_STATE, LOW_STATE, LOW_STATE }, //INIT_STATE
+  {LOW_STATE, LOW_STATE, MEDIUM_STATE, MEDIUM_STATE, MEDIUM_STATE }, //LOW_STATE
+  {MEDIUM_STATE, LOW_STATE, MEDIUM_STATE, HIGH_STATE, HIGH_STATE}, //MEDIUM_STATE
+  {HIGH_STATE, MEDIUM_STATE, MEDIUM_STATE, HIGH_STATE, CRITICAL_STATE}, //HIGH_STATE
+  {CRITICAL_STATE, HIGH_STATE, HIGH_STATE, HIGH_STATE, CRITICAL_STATE }, //CRITICAL_STATE
+  //INIT_CONDITION_EVENT, LOW_CONDITION_EVENT, MID_CONDITION_EVENT, HIGH_CONDITION_EVENT, CRITICAL_CONDITION_EVENT
 };
 transition state_table_actions[MAX_STATES][MAX_EVENTS] =
 {
-  {none,  lToM,  lToM,  lToM }, //LOW_STATE
-  {mToL,  none, mToH, mToH},  //MEDIUM_STATE
-  {hToM, hToM, none,  hToC}, //HIGH_STATE
-  {cToH, cToH, cToH, none },  //CRITICAL_STATE
-  //LOW_CONDITION_EVENT, MID_CONDITION_EVENT, HIGHT_CONDITION_EVENT, CRITICAL_CONDITION_EVENT
+  {iToL, iToL,  iToL,  iToL,  iToL }, //INIT_STATE
+  {none, none,  lToM,  lToM,  lToM }, //LOW_STATE
+  {none, mToL,  none, mToH, mToH},  //MEDIUM_STATE
+  {none, hToM, hToM, none,  hToC}, //HIGH_STATE
+  {none, cToH, cToH, cToH, none },  //CRITICAL_STATE
+  //INIT_CONDITION_EVENT, LOW_CONDITION_EVENT, MID_CONDITION_EVENT, HIGH_CONDITION_EVENT, CRITICAL_CONDITION_EVENT
 };
 
-String getSensorName(SENSOR sensor) {
-  switch (actualSensor) {
-    case C02_SENSOR : return "C02_SENSOR";
-    case DISTANCE_SENSOR : return "DISTANCE_SENSOR";
-    case TEMP_HUMIDITY_SENSOR : return "TEMP_HUMIDITY_SENSOR";
-    default: return "NONE";
-  }
-}
 void readSensors() {
-  actualSensor++;
-  actualSensor = actualSensor % SENSORS_COUNT;
+  currentSensor++;
+  currentSensor = currentSensor % SENSORS_COUNT;
+  TempAndHumidity dataDTH ;
 
-  Serial.print("Please enter a value for: ");
-  Serial.println(getSensorName(actualSensor));
-  while (!Serial.available()); // Wait for input
-  String valueString = Serial.readStringUntil('\n');
-  const int value = valueString.toInt();
-
-  switch (actualSensor) {
-    case C02_SENSOR:
-      C02_VALUE = value;
+  switch (currentSensor) {
+    case CO2_SENSOR:
+      CO2_VALUE = readPotentiometerData();
       break;
     case DISTANCE_SENSOR:
-      DISTANCE_VALUE = value;
+      DISTANCE_VALUE = readUltrasonicDistance();
       break;
     case TEMP_HUMIDITY_SENSOR:
-      HUMIDITY_VALUE = value;
-      TEMPERATURE_VALUE = value;
+      dataDTH = readDHT();
+      HUMIDITY_VALUE = dataDTH.humidity;
+      TEMPERATURE_VALUE = dataDTH.temperature;
       break;
     default:
-      actualSensor = C02_SENSOR;
+      currentSensor = CO2_SENSOR;
       break;
   }
-}
-void printSensors() {
-  Serial.print("Sensonrs: co2:");
-  Serial.print(C02_VALUE);
-  Serial.print(" distance:");
-  Serial.print(DISTANCE_VALUE);
-  Serial.print(" humidity: ");
-  Serial.println(HUMIDITY_VALUE);
 }
 
 EVENT getEvent() {
-  if (TEMPERATURE_VALUE > 60 || C02_VALUE > 60) return  CRITICAL_CONDITION_EVENT;
-  if (TEMPERATURE_VALUE > 30 || C02_VALUE > 30 || HUMIDITY_VALUE > 30) return HIGHT_CONDITION_EVENT;
-  if (TEMPERATURE_VALUE > 20 || C02_VALUE > 10 || HUMIDITY_VALUE > 10 || DISTANCE_VALUE > 5) return MID_CONDITION_EVENT;
+  if (
+    TEMPERATURE_VALUE > TEMPERATURE_HIGH ||
+    CO2_VALUE > CO2_HIGH ||
+    HUMIDITY_VALUE < MIN_HUMIDITY_HIGH ||
+    HUMIDITY_VALUE > MAX_HUMIDITY_HIGH
+  ) return CRITICAL_CONDITION_EVENT;
+
+  if (
+    TEMPERATURE_VALUE > TEMPERATURE_MID ||
+    CO2_VALUE > CO2_MID ||
+    HUMIDITY_VALUE < MIN_HUMIDITY_MID ||
+    HUMIDITY_VALUE > MAX_HUMIDITY_MID
+  ) return HIGH_CONDITION_EVENT;
+
+  if (
+    TEMPERATURE_VALUE > TEMPERATURE_LOW ||
+    CO2_VALUE > CO2_LOW ||
+    HUMIDITY_VALUE < MIN_HUMIDITY_LOW ||
+    HUMIDITY_VALUE > MAX_HUMIDITY_LOW ||
+    DISTANCE_VALUE > DISTANCE_LOW
+  ) return MID_CONDITION_EVENT;
+
   return LOW_CONDITION_EVENT;
 }
 
+const int MAX_MESSAGES = 5;
+String messages[MAX_MESSAGES];
+int messageCount;
+void updateAlertWarningMessages() {
+  messageCount = 0;
+  if (TEMPERATURE_VALUE > TEMPERATURE_LOW) messages[messageCount++] = "Temp > " + String(TEMPERATURE_LOW);
+  if (CO2_VALUE > CO2_LOW) messages[messageCount++] = "CO2 > " + String(CO2_LOW);
+  if (HUMIDITY_VALUE < MIN_HUMIDITY_LOW) messages[messageCount++] = "Humidity < " + String(MIN_HUMIDITY_LOW);
+  if (HUMIDITY_VALUE > MAX_HUMIDITY_LOW) messages[messageCount++] = "Humidity > " + String(MAX_HUMIDITY_LOW);
+  if (DISTANCE_VALUE > DISTANCE_LOW) messages[messageCount++] = "Door Open";
+}
+
+String getStateName(int state) {
+  switch (state) {
+    case  INIT_STATE: return "inicial";
+    case  LOW_STATE: return "low";
+    case  MEDIUM_STATE: return "medium";
+    case  HIGH_STATE: return "high";
+    case  CRITICAL_STATE: return "critical";
+  }
+}
+
+void notify() {
+  Serial.println("ha ocurrido un cambio de estado del estado: " + getStateName(currentState) + " al estado: " + getStateName(nextState));
+
+  updateAlertWarningMessages();
+  if (messageCount > 0) {
+    Serial.print("las mediciones afectadas fueron: ");
+    for (int i = 0; i < messageCount; i++) {
+      Serial.print(messages[i] + " ");
+    }
+    Serial.println();
+  }
+}
+
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-  Serial.println("Hello, ESP32!");
+  initSensors();
+  initActuators();
 }
 
 void loop() {
   readSensors();
-  printSensors();
   EVENT event = getEvent();
-  STATE nextState = state_table_next_state[actualState][event];
-  transition action = state_table_actions[actualState][event];
+  nextState = state_table_next_state[currentState][event];
+  transition action = state_table_actions[currentState][event];
   action();
-  actualState = nextState;
-  delay(10); // this speeds up the simulation
+  currentState = nextState;
 }
