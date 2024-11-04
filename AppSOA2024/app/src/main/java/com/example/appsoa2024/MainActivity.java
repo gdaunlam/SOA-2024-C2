@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
         connect();
         configurarBroadcastReciever();
 
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        String currentDateTime = sdf.format(new Date());
+        txtUltimaActualizacion.setText("Ultima actualizacion: " + currentDateTime);
+
     }
 
     @Override
