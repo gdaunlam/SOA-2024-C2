@@ -15,10 +15,10 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
 
 public class MqttHandler implements MqttCallback {
-    public static final String BROKER_URL = "tcp://broker.emqx.io:1883";
-    public static final String CLIENT_ID = "mqttx_f9bfd3ww";
-    public static final String USER="moto g52_5630";
-    public static final String PASS="12345678";
+    private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ; tcp://broker.emqx.io:8883
+    private static final String CLIENT_ID = "mqttx_f9bfd3ww";
+    private static final String USER="emqx";
+    private static final String PASS="public";
 
     public static final String TOPIC_RELAY_MUTE = "/abscgwrrrt22/actuators/mute/relay";
     public static final String TOPIC_BUZZER_MUTE = "/abscgwrrrt22/actuators/mute/buzzer";
@@ -30,23 +30,20 @@ public class MqttHandler implements MqttCallback {
     private Context mContext;
 
     public MqttHandler(Context mContext){
-
         this.mContext = mContext;
-
     }
 
-    public void connect( String brokerUrl, String clientId,String username, String password) {
+    public void connect() {
         try {
-
+            //Se configura las opciones de conexion
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            options.setUserName(username);
-            options.setPassword(password.toCharArray());
-
-            // Set up the persistence layer
+            options.setUserName(USER);
+            options.setPassword(PASS.toCharArray());
+            // Persistencia en memoria
             MemoryPersistence persistence = new MemoryPersistence();
-
-            client = new MqttClient(brokerUrl, clientId, persistence);
+            // Inicializar el cliente
+            client = new MqttClient(BROKER_URL, CLIENT_ID, persistence);
             client.connect(options);
 
             client.setCallback(this);

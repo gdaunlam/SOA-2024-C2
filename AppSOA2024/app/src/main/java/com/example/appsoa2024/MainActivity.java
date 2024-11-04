@@ -7,6 +7,7 @@ import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,6 +20,9 @@ import android.content.IntentFilter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity {
 
     private MqttHandler mqttHandler;
@@ -28,7 +32,11 @@ public class MainActivity extends AppCompatActivity {
     private ConnectionLost connectionLost =new ConnectionLost();
     private TextView txtJson;
     private TextView txtTemp;
-
+    private TextView txtUltimaActualizacion;
+    private TextView txtTemperatura;
+    private TextView txtHumedad;
+    private TextView txtCO2;
+    private TextView txtEstadoPuerta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Logica para ir a la pantalla de actuadores
         Button btnIrActuadores = findViewById(R.id.btnIrActuadores);
+
         btnIrActuadores.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,6 +59,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        //Inicializo resto de los textviews
+        txtUltimaActualizacion = findViewById(R.id.tvUltimaActualizacion);
+        txtTemperatura = findViewById(R.id.tvTemperaturaValor);
+        txtCO2 = findViewById(R.id.tvCO2Valor);
+        txtHumedad = findViewById(R.id.tvHumedadValor);
+        txtEstadoPuerta = findViewById(R.id.tvPuertaValor);
 
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
@@ -72,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Funciones para la comunicacion via MQTT
     private void connect() {
-        mqttHandler.connect(mqttHandler.BROKER_URL,mqttHandler.CLIENT_ID, mqttHandler.USER, mqttHandler.PASS);
+        mqttHandler.connect();
         try {
             Thread.sleep(1000);
             //Suscripcion a los topicos de la app
@@ -120,7 +136,15 @@ public class MainActivity extends AppCompatActivity {
 
     public class ReceptorOperacion extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            //Se obtiene los valores que envio el servicio atraves de un untent
+
+            //Se obtiene los valores que envio el servicio atraves de un intent
+            //Se actualiza fecha de actualizacion
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String currentDateTime = sdf.format(new Date());
+            txtUltimaActualizacion.setText("Ultima actualizacion: " + currentDateTime);
+
+            //Ahora se pregunta el contexto
+
             String msgJson = intent.getStringExtra("msgJson");
             txtJson.setText(msgJson);
 
