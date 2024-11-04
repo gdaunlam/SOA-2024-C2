@@ -32,7 +32,8 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.mqtt)
+    implementation(libs.mqttAndroid)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
