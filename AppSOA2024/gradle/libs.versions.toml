@@ -17,6 +17,9 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
+mqtt = { module = "org.eclipse.paho:org.eclipse.paho.client.mqttv3", version = "1.2.5" }
+mqttAndroid = { module = "org.eclipse.paho:org.eclipse.paho.android.service", version = "1.1.1" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 
