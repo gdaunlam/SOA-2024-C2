@@ -299,6 +299,7 @@ void setup() {
 void loop() {
   loopConnections();
   sendValuesMqtt(String(CO2_VALUE), String(DIST_VALUE), String(HUM_VALUE), String(TEMP_VALUE), String(nextState));
+  loopActuators();
 
   EVENT event = getEvent();
   nextState = state_table_next_state[event][currentState];

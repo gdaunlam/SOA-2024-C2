@@ -3,6 +3,7 @@ package com.example.appsoa2024;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 //Para agregar estas bibliotecas, se actualizaron los archivos build.gradle.kts y libs.versions.toml
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -15,7 +16,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
 
 public class MqttHandler implements MqttCallback {
-    private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ; tcp://broker.emqx.io:8883
+    private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ;
     private static final String CLIENT_ID = "mqttx_f9bfd3ww";
     private static final String USER="emqx";
     private static final String PASS="public";
@@ -45,8 +46,8 @@ public class MqttHandler implements MqttCallback {
             // Inicializar el cliente
             client = new MqttClient(BROKER_URL, CLIENT_ID, persistence);
             client.connect(options);
-
             client.setCallback(this);
+
             //client.subscribe("#");
         } catch (MqttException e) {
             Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
@@ -94,6 +95,8 @@ public class MqttHandler implements MqttCallback {
 
         JSONObject json = new JSONObject(message.toString());
         Float valorPote = Float.parseFloat(json.getString("value"));
+
+        System.out.println("llegue");
 
         //Se envian los valores sensados por el potenciometro, al bradcast reciever de la activity principal
         Intent i = new Intent(ACTION_DATA_RECEIVE);

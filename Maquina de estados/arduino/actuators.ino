@@ -4,22 +4,20 @@
 #define PIN_LED_GREEN 22
 #define PIN_RELAY 14
 
+uint8_t buzzerStatus = HIGH;
 void turnOnBuzzer() {
-  int value = LOW;
-  if(getMuteBuzzer()) value = HIGH;
-  digitalWrite(PIN_BUZZER, value);
+  buzzerStatus = LOW;
 }
 void turnOffBuzzer() {
-  digitalWrite(PIN_BUZZER, HIGH);
+  buzzerStatus = HIGH;
 }
 
+uint8_t relayStatus = LOW;
 void turnOnRelay(){
-  int value = HIGH;
-  if(getMuteRelay()) value = LOW;
-  digitalWrite(PIN_RELAY, value);
+  relayStatus = HIGH;
 }
 void turnOffRelay(){
-  digitalWrite(PIN_RELAY, LOW);
+  relayStatus = LOW;
 }
 
 void setColorLed(int red, int green, int blue) {
@@ -47,4 +45,10 @@ void initActuators() {
   pinMode(PIN_LED_BLUE, OUTPUT);
   pinMode(PIN_LED_GREEN, OUTPUT);
   pinMode(PIN_RELAY, OUTPUT);
+}
+
+void loopActuators() {
+  Serial.println(String(buzzerStatus) + "|" + String(getMuteBuzzer()) + "|" + String(buzzerStatus) + "|" + String(buzzerStatus && getMuteBuzzer()));
+   digitalWrite(PIN_BUZZER, buzzerStatus && !getMuteBuzzer());
+   digitalWrite(PIN_RELAY, relayStatus && !getMuteRelay());
 }
