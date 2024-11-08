@@ -2,6 +2,7 @@ package com.example.appsoa2024;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.altitude.AltitudeConverter;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,6 +16,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+
 public class MqttHandler implements MqttCallback {
     private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ;
     private static final String CLIENT_ID = "mqttx_f9bfd3ww";
@@ -25,16 +31,29 @@ public class MqttHandler implements MqttCallback {
     public static final String TOPIC_BUZZER_MUTE = "/abscgwrrrt22/actuators/mute/buzzer";
     public static final String TOPIC_SENSORS_EVENTS = "/abscgwrrrt22/sensors/events";
     public static final String TOPIC_SENSORS_VALUES = "/abscgwrrrt22/sensors/values";
-    public static final String ACTION_DATA_RECEIVE ="com.example.intentservice.intent.action.DATA_RECEIVE";
+    public static final String ACTION_EVENTS_RECEIVE ="com.example.intentservice.intent.action.EVENTS_RECEIVE";
     public static final String ACTION_CONNECTION_LOST ="com.example.intentservice.intent.action.CONNECTION_LOST";
+    public static final String ACTION_VALUES_RECEIVE = "com.example.intentservice.intent.action.VALUES_RECEIVE";
+    private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
+        put("1", "LOW");
+        put("2", "MEDIUM");
+        put("3", "HIGH");
+        put("4", "CRITICAL");
+        //etc
+    }};
     private MqttClient client;
     private Context mContext;
-
     public MqttHandler(Context mContext){
         this.mContext = mContext;
     }
 
     public void connect() {
+        if(client != null) {
+            if(client.isConnected()) {
+                return;
+            }
+        }
+
         try {
             //Se configura las opciones de conexion
             MqttConnectOptions options = new MqttConnectOptions();
@@ -56,7 +75,8 @@ public class MqttHandler implements MqttCallback {
 
     public void disconnect() {
         try {
-            client.disconnect();
+            if(!client.isConnected())
+                client.disconnect();
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -90,21 +110,38 @@ public class MqttHandler implements MqttCallback {
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
+        String messageMqtt=message.toString();
+        //Se declara el intent que se va a enviar en el broadcast. Se inicializa segun el topico
+        Intent i = null;
 
-        String msgJson=message.toString();
+        switch(topic){
+            case TOPIC_SENSORS_VALUES:
+                //Guardar los valores en las variables de la clase MQTTHandler
+                i = new Intent(ACTION_VALUES_RECEIVE);
+                List<String> listValues = new ArrayList<String>(Arrays.asList(messageMqtt.split("\\|")));
+                for(String value: listValues){
+                    String key = value.substring(0,value.indexOf("="));
+                    value = value.substring(value.indexOf("=") + 1);
+                    if(key.equals("STATE")){
+                        value = dictEstados.get(value); //Reemplazo el numero por el string
+                    }
 
-        JSONObject json = new JSONObject(message.toString());
-        Float valorPote = Float.parseFloat(json.getString("value"));
+                    i.putExtra(key,value);  //En el intent, se crea un item por cada valor de sensor recibido
+                }
+                break;
+            case TOPIC_SENSORS_EVENTS:
+                i = new Intent(ACTION_EVENTS_RECEIVE);
+                String key = messageMqtt.substring(0,messageMqtt.indexOf("="));
+                String valueEvent = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
+                i.putExtra(key,valueEvent);
+                break;
+            default:
+                System.out.println("Error topic desconocido.");
+                break;
 
-        System.out.println("llegue");
+        }
 
-        //Se envian los valores sensados por el potenciometro, al bradcast reciever de la activity principal
-        Intent i = new Intent(ACTION_DATA_RECEIVE);
-        i.putExtra("msgJson", msgJson);
-
-        mContext.sendBroadcast(i);
-
-
+        mContext.sendBroadcast(i);  //Envio el intent al broadcast
 
     }
 
