@@ -1,95 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="#FAFAFA">
+    android:background="#2C2C2C"
+    android:padding="16dp">
 
     <Button
         android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="172dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="8dp"
         android:text="Atrás"
-        android:textSize="16sp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:textColor="#000000"
+        android:textSize="22sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/tvTituloActuadores"
+        app:layout_constraintStart_toStartOf="@+id/tvTituloActuadores" />
 
     <TextView
         android:id="@+id/tvTituloActuadores"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
         android:text="Actuadores"
+        android:textColor="#D7D7D7"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#333333"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvBuzzer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
         android:text="Buzzer"
+        android:textColor="#DEDEDE"
         android:textSize="20sp"
-        android:textColor="#333333"
-        app:layout_constraintTop_toBottomOf="@id/tvTituloActuadores"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="48dp"/>
-
-    <Button
-        android:id="@+id/btnBuzzerOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="On"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/tvBuzzer"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"/>
-
-    <Button
-        android:id="@+id/btnBuzzerOff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Off"
-        android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="@id/btnBuzzerOn"
-        app:layout_constraintStart_toEndOf="@id/btnBuzzerOn"
-        android:layout_marginStart="16dp"/>
+        app:layout_constraintTop_toBottomOf="@id/tvTituloActuadores" />
 
     <TextView
         android:id="@+id/tvRele"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:text="Relé"
+        android:textColor="#B8B8B8"
         android:textSize="20sp"
-        android:textColor="#333333"
-        app:layout_constraintTop_toBottomOf="@id/btnBuzzerOn"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="48dp"/>
+        app:layout_constraintTop_toBottomOf="@id/btnBuzzerOn" />
+
+    <Button
+        android:id="@+id/btnBuzzerOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="On"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvBuzzer"
+        app:layout_constraintTop_toBottomOf="@+id/tvBuzzer" />
+
+    <Button
+        android:id="@+id/btnBuzzerOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Off"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/btnBuzzerOn"
+        app:layout_constraintTop_toTopOf="@id/btnBuzzerOn" />
 
     <Button
         android:id="@+id/btnReleOn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="On"
         android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/tvRele"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintStart_toStartOf="@+id/tvRele"
+        app:layout_constraintTop_toBottomOf="@+id/tvRele" />
 
     <Button
         android:id="@+id/btnReleOff"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:text="Off"
         android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="@id/btnReleOn"
         app:layout_constraintStart_toEndOf="@id/btnReleOn"
-        android:layout_marginStart="16dp"/>
+        app:layout_constraintTop_toTopOf="@id/btnReleOn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

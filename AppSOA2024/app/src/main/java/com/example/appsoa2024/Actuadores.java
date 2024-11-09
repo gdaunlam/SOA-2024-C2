@@ -16,6 +16,8 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.util.Log;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 public class Actuadores extends AppCompatActivity implements SensorEventListener {
 
     private final static float ACC = 30;
@@ -89,12 +91,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
                 publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
             }
         });
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
         //Crear instancia MQTT y suscripcion de los topicos
         mqttHandler = new MqttHandler(getApplicationContext());
         connect();
@@ -104,7 +100,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     protected void onResume()
     {
         super.onResume();
-        mqttHandler.connect();
         registerSenser();
 
         // Inicializar el MediaPlayer y establecer el volumen
@@ -114,13 +109,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         }
     }
 
-    @Override
-    protected void onStop()
-    {
-        mqttHandler.disconnect();
-        super.onStop();
-        unregisterSenser();
-    }
 
     @Override
     protected void onPause()
@@ -131,7 +119,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
             mplayer.release();
             mplayer = null;
         }
-        mqttHandler.disconnect();
         super.onPause();
     }
 
@@ -141,7 +128,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
             mplayer.release();
             mplayer = null;
         }
-        mqttHandler.disconnect();
         unregisterSenser();
         super.onDestroy();
     }
@@ -176,34 +162,32 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private void registerSenser()
     {
         sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-        Log.i("sensor", "register");
+        //Log.i("sensor", "register");
     }
 
     private void connect()
     {
-        mqttHandler.connect();
-
         try {
-            Thread.sleep(1000);
-            subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
-            subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            mqttHandler.connect();
+            Toast.makeText(getApplicationContext(),"Conexion establecida",Toast.LENGTH_SHORT).show();
+        } catch (MqttException e) {
+            Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
         }
+        subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
+        subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
     }
     private void publishMessage(String topic, String message){
-        Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
         mqttHandler.publish(topic,message);
     }
     private void subscribeToTopic(String topic){
-        Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
         mqttHandler.subscribe(topic);
     }
 
     private void unregisterSenser()
     {
         sensor.unregisterListener(this);
-        Log.i("sensor", "unregister");
     }
 
 }

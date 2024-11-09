@@ -41,42 +41,35 @@ public class MqttHandler implements MqttCallback {
         put("4", "CRITICAL");
         //etc
     }};
-    private MqttClient client;
+    private static MqttClient client;
     private Context mContext;
     public MqttHandler(Context mContext){
         this.mContext = mContext;
     }
 
-    public void connect() {
-        if(client != null) {
-            if(client.isConnected()) {
-                return;
-            }
+    public void connect() throws MqttException {
+        boolean clientExists = client != null;
+        if(clientExists && client.isConnected()){
+            return;
         }
+        //Se configura las opciones de conexion
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setCleanSession(true);
+        options.setUserName(USER);
+        options.setPassword(PASS.toCharArray());
+        // Persistencia en memoria
+        MemoryPersistence persistence = new MemoryPersistence();
+        // Inicializar el cliente
+        client = new MqttClient(BROKER_URL, CLIENT_ID, persistence);
+        client.connect(options);
+        client.setCallback(this);
 
-        try {
-            //Se configura las opciones de conexion
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setCleanSession(true);
-            options.setUserName(USER);
-            options.setPassword(PASS.toCharArray());
-            // Persistencia en memoria
-            MemoryPersistence persistence = new MemoryPersistence();
-            // Inicializar el cliente
-            client = new MqttClient(BROKER_URL, CLIENT_ID, persistence);
-            client.connect(options);
-            client.setCallback(this);
-
-            //client.subscribe("#");
-        } catch (MqttException e) {
-            Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
-        }
+        //client.subscribe("#");
     }
 
     public void disconnect() {
         try {
-            if(!client.isConnected())
-                client.disconnect();
+            client.disconnect();
         } catch (MqttException e) {
             e.printStackTrace();
         }

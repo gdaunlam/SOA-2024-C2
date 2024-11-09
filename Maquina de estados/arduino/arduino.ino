@@ -174,7 +174,7 @@ String getStateName(int state) {
 }
 void ntfyState() {
   Serial.println("ha ocurrido un cambio de estado del estado: " + getStateName(currentState) + " al estado: " + getStateName(nextState));
-  sendEventsMqtt(getStateName(currentState), STATE_KEY);
+  sendEventsMqtt(getStateName(nextState), STATE_KEY);
 }
 void ntfySensor() {
   switch (currentSensor) {

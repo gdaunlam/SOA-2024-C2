@@ -2,6 +2,7 @@ package com.example.appsoa2024;
 
 import android.os.Bundle;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +20,8 @@ import android.content.Context;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
+
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtCO2;
     private TextView txtEstadoPuerta;
     private TextView txtEstadoEmbebido;
+
+    final Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,39 +79,11 @@ public class MainActivity extends AppCompatActivity {
         txtEstadoPuerta = (TextView)findViewById(R.id.tvPuertaValor);
         txtEstadoEmbebido = (TextView)findViewById(R.id.tvEstado);
 
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
         connect();
         configurarBroadcastReciever();
         actualizarFechaYHora();
-    }
-
-    @Override
-    protected void onResume() {
-        Log.d("Aplicacion","ASDASDASD");
-        mqttHandler.connect();
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        Log.d("Aplicacion","ASDASDASD");
-        mqttHandler.disconnect();
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mqttHandler.disconnect();
-        unregisterReceiver(receiverEventos);
-        unregisterReceiver(receiverSensores);
-        unregisterReceiver(connectionLost);
     }
 
     @Override
@@ -120,21 +97,32 @@ public class MainActivity extends AppCompatActivity {
 
     //Funciones para la comunicacion via MQTT
     private void connect() {
-        mqttHandler.connect();
         try {
-            Thread.sleep(1000);
+            mqttHandler.connect();
+            Toast.makeText(getApplicationContext(),"Conexion establecida",Toast.LENGTH_SHORT).show();
+        } catch (MqttException e) {
+            Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connect();
+                }
+            }, 500);
+        }
+        subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
+        subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
+        //try {
+            //Thread.sleep(1000);
             //Suscripcion a los topicos de la app
             //subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
             //subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
-            subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
-            subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
 
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        //} catch (InterruptedException e) {
+            //throw new RuntimeException(e);
+        //}
     }
 
-    //Metodo que crea y configurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
+    //Metodo que crea y conrefigurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
     //con la activity principal
     private void configurarBroadcastReciever() {
         //se asocia(registra) la  accion RESPUESTA_OPERACION, para que cuando el Servicio de recepcion la ejecute
@@ -153,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void subscribeToTopic(String topic){
-        Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
         mqttHandler.subscribe(topic);
     }
 
@@ -194,20 +182,20 @@ public class MainActivity extends AppCompatActivity {
                     String sensorValue = intent.getStringExtra(extraName);
                     switch(extraName){
                         case "CO2":
-                            txtCO2.setText(sensorValue);
+                            txtCO2.setText(sensorValue + " ppm");
                             break;
                         case "DIST":
-                            if(sensorValue.equals("0")){
-                                txtEstadoPuerta.setText("CERRADA");
-                            } else {
+                            if(Float.parseFloat(sensorValue) > 5) {
                                 txtEstadoPuerta.setText("ABIERTA");
+                            } else {
+                                txtEstadoPuerta.setText("CERRADA");
                             }
                             break;
                         case "HUM":
-                            txtHumedad.setText(sensorValue);
+                            txtHumedad.setText(sensorValue + " %");
                             break;
                         case "TEMP":
-                            txtTemperatura.setText(sensorValue);
+                            txtTemperatura.setText(sensorValue + " °C");
                             break;
                         case "STATE":
                             txtEstadoEmbebido.setText(sensorValue);
