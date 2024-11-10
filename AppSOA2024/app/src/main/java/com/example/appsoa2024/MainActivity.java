@@ -111,15 +111,6 @@ public class MainActivity extends AppCompatActivity {
         }
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
-        //try {
-            //Thread.sleep(1000);
-            //Suscripcion a los topicos de la app
-            //subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
-            //subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
-
-        //} catch (InterruptedException e) {
-            //throw new RuntimeException(e);
-        //}
     }
 
     //Metodo que crea y conrefigurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
@@ -141,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void subscribeToTopic(String topic){
-        //Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
         mqttHandler.subscribe(topic);
     }
 
@@ -174,8 +164,6 @@ public class MainActivity extends AppCompatActivity {
 
     public class ReceptorValoresSensores extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            boolean isOnUiThread = Looper.myLooper() == Looper.getMainLooper();
-
             //Leo todos los extras del intent en un for each
             runOnUiThread(() -> {
                 for(String extraName: intent.getExtras().keySet()){

@@ -4,8 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
 import android.hardware.Sensor;
@@ -20,7 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 public class Actuadores extends AppCompatActivity implements SensorEventListener {
 
-    private final static float ACC = 30;
+    private final static float AcelerometerMaxValueToSong = 30;
     private MediaPlayer mplayer;
     private SensorManager sensor;
     private MqttHandler mqttHandler;
@@ -109,7 +107,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         }
     }
 
-
     @Override
     protected void onPause()
     {
@@ -141,14 +138,11 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent event)
     {
-
         int sensorType = event.sensor.getType();
-
         float[] values = event.values;
-
         if (sensorType == Sensor.TYPE_ACCELEROMETER)
         {
-            if ((Math.abs(values[0]) > ACC || Math.abs(values[1]) > ACC || Math.abs(values[2]) > ACC))
+            if ((Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong))
             {
                 Log.i("sensor", "running");
                 //Chequeo para que se reproduzca solamente si no esta activado
@@ -162,17 +156,10 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private void registerSenser()
     {
         sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-        //Log.i("sensor", "register");
     }
 
     private void connect()
     {
-        try {
-            mqttHandler.connect();
-            Toast.makeText(getApplicationContext(),"Conexion establecida",Toast.LENGTH_SHORT).show();
-        } catch (MqttException e) {
-            Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
-        }
         subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
         subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
     }
@@ -181,7 +168,6 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         mqttHandler.publish(topic,message);
     }
     private void subscribeToTopic(String topic){
-        //Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
         mqttHandler.subscribe(topic);
     }
 

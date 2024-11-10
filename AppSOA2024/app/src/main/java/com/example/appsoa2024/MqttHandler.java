@@ -63,8 +63,6 @@ public class MqttHandler implements MqttCallback {
         client = new MqttClient(BROKER_URL, CLIENT_ID, persistence);
         client.connect(options);
         client.setCallback(this);
-
-        //client.subscribe("#");
     }
 
     public void disconnect() {
