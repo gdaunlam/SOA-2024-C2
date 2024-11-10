@@ -4,96 +4,161 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2C2C2C"
+    android:background="#282a36"
     android:padding="16dp">
 
     <Button
         android:id="@+id/btnBack"
-        style="@style/Widget.AppCompat.Button"
-        android:layout_width="172dp"
-        android:layout_height="70dp"
-        android:layout_marginBottom="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Atrás"
-        android:textColor="#000000"
-        android:textSize="22sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/tvTituloActuadores"
-        app:layout_constraintStart_toStartOf="@+id/tvTituloActuadores" />
+        android:textColor="#282a36"
+        android:textSize="16sp"
+        android:backgroundTint="#ff79c6"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:icon="@drawable/ic_arrow_left"
+        app:iconTint="#282a36"/>
 
     <TextView
         android:id="@+id/tvTituloActuadores"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
         android:text="Actuadores"
-        android:textColor="#D7D7D7"
+        android:textColor="#f8f8f2"
         android:textSize="24sp"
         android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        android:layout_marginTop="24dp"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardActuadores"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="#44475a"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTituloActuadores"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/tvBuzzer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:text="Buzzer"
-        android:textColor="#DEDEDE"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTituloActuadores" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
 
-    <TextView
-        android:id="@+id/tvRele"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Relé"
-        android:textColor="#B8B8B8"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnBuzzerOn" />
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_volume"
+                    app:tint="#8be9fd"
+                    android:layout_marginEnd="8dp"/>
 
-    <Button
-        android:id="@+id/btnBuzzerOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="On"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/tvBuzzer"
-        app:layout_constraintTop_toBottomOf="@+id/tvBuzzer" />
+                <TextView
+                    android:id="@+id/tvBuzzer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Buzzer"
+                    android:textSize="20sp"
+                    android:textColor="#f8f8f2"/>
+            </LinearLayout>
 
-    <Button
-        android:id="@+id/btnBuzzerOff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Off"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/btnBuzzerOn"
-        app:layout_constraintTop_toTopOf="@id/btnBuzzerOn" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
 
-    <Button
-        android:id="@+id/btnReleOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="On"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/tvRele"
-        app:layout_constraintTop_toBottomOf="@+id/tvRele" />
+                <Button
+                    android:id="@+id/btnBuzzerOn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="On"
+                    android:textSize="18sp"
+                    android:textColor="#282a36"
+                    android:backgroundTint="#50fa7b"
+                    android:layout_marginEnd="8dp"/>
 
-    <Button
-        android:id="@+id/btnReleOff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Off"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/btnReleOn"
-        app:layout_constraintTop_toTopOf="@id/btnReleOn" />
+                <Button
+                    android:id="@+id/btnBuzzerOff"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Off"
+                    android:textSize="18sp"
+                    android:textColor="#282a36"
+                    android:backgroundTint="#ff5555"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="0dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_zap"
+                    app:tint="#8be9fd"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                        android:id="@+id/tvRele"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Relé"
+                        android:textSize="20sp"
+                        android:textColor="#f8f8f2"
+                        android:layout_marginBottom="16dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
+
+                <Button
+                    android:id="@+id/btnReleOn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="On"
+                    android:textSize="18sp"
+                    android:textColor="#282a36"
+                    android:backgroundTint="#50fa7b"
+                    android:layout_marginEnd="8dp"/>
+
+                <Button
+                    android:id="@+id/btnReleOff"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Off"
+                    android:textSize="18sp"
+                    android:textColor="#282a36"
+                    android:backgroundTint="#ff5555"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
