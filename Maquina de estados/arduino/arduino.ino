@@ -6,6 +6,8 @@
 #define TEMP_KEY "TEMP"
 #define OPEN_DOOR_KEY "OPEN_DOOR"
 #define STATE_KEY "STATE"
+#define BUZZER_KEY "BUZZER"
+#define RELAY_KEY "RELAY"
 
 typedef int STATE_VALUES;
 const STATE_VALUES CO2_HIGH_PORCENT = 5;
@@ -175,6 +177,8 @@ String getStateName(int state) {
 void ntfyState() {
   Serial.println("ha ocurrido un cambio de estado del estado: " + getStateName(currentState) + " al estado: " + getStateName(nextState));
   sendEventsMqtt(getStateName(nextState), STATE_KEY);
+  sendEventsActuatorsMqtt(BUZZER_KEY,String(isBuzzerOn()));
+  sendEventsActuatorsMqtt(RELAY_KEY,String(isRelayOn()));
 }
 void ntfySensor() {
   switch (currentSensor) {

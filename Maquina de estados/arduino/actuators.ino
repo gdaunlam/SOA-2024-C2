@@ -53,3 +53,11 @@ void loopActuators() {
   digitalWrite(PIN_BUZZER, mustOnBuzzer ? LOW: HIGH);
   digitalWrite(PIN_RELAY, mustOnRelay ? LOW: HIGH);
 }
+
+bool isBuzzerOn(){
+  return digitalRead(PIN_BUZZER) == 1;
+}
+
+bool isRelayOn(){
+  return digitalRead(PIN_RELAY) == 1;
+}

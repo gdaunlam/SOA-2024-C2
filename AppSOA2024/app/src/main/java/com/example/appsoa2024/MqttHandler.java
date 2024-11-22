@@ -31,10 +31,14 @@ public class MqttHandler implements MqttCallback {
     public static final String TOPIC_BUZZER_MUTE = "/abscgwrrrt22/actuators/mute/buzzer";
     public static final String TOPIC_SENSORS_EVENTS = "/abscgwrrrt22/sensors/events";
     public static final String TOPIC_SENSORS_VALUES = "/abscgwrrrt22/sensors/values";
+    public static final String TOPIC_ACTUATOR_RELAY_STATE = "/abscgwrrrt22/actuators/status/relay";
+    public static final String TOPIC_ACTUATOR_BUZZER_STATE = "/abscgwrrrt22/actuators/status/buzzer";
+
     public static final String ACTION_EVENTS_RECEIVE ="com.example.intentservice.intent.action.EVENTS_RECEIVE";
     public static final String ACTION_CONNECTION_LOST ="com.example.intentservice.intent.action.CONNECTION_LOST";
     public static final String ACTION_VALUES_RECEIVE = "com.example.intentservice.intent.action.VALUES_RECEIVE";
-    private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
+    public static final String ACTION_EVENTS_ACTUATOR_STATUS = "com.example.intentservice.intent.action.ACTUATOR.STATUS";
+     private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
         put("1", "LOW");
         put("2", "MEDIUM");
         put("3", "HIGH");
@@ -125,6 +129,14 @@ public class MqttHandler implements MqttCallback {
                 String key = messageMqtt.substring(0,messageMqtt.indexOf("="));
                 String valueEvent = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
                 i.putExtra(key,valueEvent);
+                break;
+            case TOPIC_ACTUATOR_BUZZER_STATE:
+                i = new Intent(ACTION_EVENTS_ACTUATOR_STATUS);
+                i.putExtra("BUZZER",messageMqtt);
+                break;
+            case TOPIC_ACTUATOR_RELAY_STATE:
+                i = new Intent(ACTION_EVENTS_ACTUATOR_STATUS);
+                i.putExtra("RELAY",messageMqtt);
                 break;
             default:
                 System.out.println("Error topic desconocido.");
