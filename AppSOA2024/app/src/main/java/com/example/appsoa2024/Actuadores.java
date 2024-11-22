@@ -1,6 +1,11 @@
 package com.example.appsoa2024;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,8 +18,8 @@ import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.util.Log;
-
-import org.eclipse.paho.client.mqttv3.MqttException;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class Actuadores extends AppCompatActivity implements SensorEventListener {
 
@@ -22,6 +27,17 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private MediaPlayer mplayer;
     private SensorManager sensor;
     private MqttHandler mqttHandler;
+    private boolean boolRelayOn = false;
+    private boolean boolBuzzerOn = false;
+    private ReceptorEventoActuador receiverEventoActuador = new ReceptorEventoActuador();
+    private TextView tvBuzzerStatus;
+    private TextView tvRelayStatus;
+    private Button btnReleOn;
+    private Button btnReleOff;
+    private Button btnBuzzerOn;
+    private Button btnBuzzerOff;
+    public IntentFilter filterReceive;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,45 +69,62 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         });
 
         // Configurar los botones del Buzzer
-        Button btnBuzzerOn = findViewById(R.id.btnBuzzerOn);
+        btnBuzzerOn = findViewById(R.id.btnBuzzerOn);
+        btnBuzzerOff = findViewById(R.id.btnBuzzerOff);
+
         btnBuzzerOn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Lógica para encender el buzzer
                 publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
+                btnBuzzerOn.setEnabled(false);
+                btnBuzzerOff.setEnabled(true);
             }
         });
 
-        Button btnBuzzerOff = findViewById(R.id.btnBuzzerOff);
         btnBuzzerOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Lógica para apagar el buzzer
                 publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
+                btnBuzzerOn.setEnabled(false);
+                btnBuzzerOff.setEnabled(false);
             }
         });
 
         // Configurar los botones del Relé
-        Button btnReleOn = findViewById(R.id.btnReleOn);
+        btnReleOn = findViewById(R.id.btnReleOn);
+        btnReleOff = findViewById(R.id.btnReleOff);
+
         btnReleOn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Lógica para encender el relé
                 publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
+                btnReleOn.setEnabled(false);
+                btnReleOff.setEnabled(true);
             }
         });
 
-        Button btnReleOff = findViewById(R.id.btnReleOff);
         btnReleOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Lógica para apagar el relé
                 publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
+                btnReleOn.setEnabled(true);
+                btnReleOff.setEnabled(false);
             }
         });
+
+
+
+        tvBuzzerStatus = findViewById(R.id.tvBuzzerState);
+        tvRelayStatus = findViewById(R.id.tvReleState);
+
         //Crear instancia MQTT y suscripcion de los topicos
         mqttHandler = new MqttHandler(getApplicationContext());
         connect();
+        configureBroadcastReceiver();
     }
 
     @Override
@@ -126,6 +159,7 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
             mplayer = null;
         }
         unregisterSenser();
+        unregisterReceiver(receiverEventoActuador);
         super.onDestroy();
     }
 
@@ -162,6 +196,8 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     {
         subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
         subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
+        subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_BUZZER_STATE);
+        subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_RELAY_STATE);
     }
     private void publishMessage(String topic, String message){
         //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
@@ -174,6 +210,68 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private void unregisterSenser()
     {
         sensor.unregisterListener(this);
+    }
+
+    private void configureBroadcastReceiver() {
+        filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
+
+        filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
+        registerReceiver(receiverEventoActuador, filterReceive);
+    }
+
+    private void cambiarEstadoBuzzer(String value){
+        if(value.equals("TRUE")) {
+            if(!boolBuzzerOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
+                tvRelayStatus.setText("Encendido");
+                boolBuzzerOn = true;
+                btnReleOff.setEnabled(true);
+                btnReleOn.setEnabled(false);
+            }
+        } else {
+            if(boolBuzzerOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
+                tvRelayStatus.setText("Apagado");
+                boolBuzzerOn = false;
+                btnReleOff.setEnabled(false);
+                btnReleOn.setEnabled(false);
+            }
+        }
+    }
+
+    private void cambiarEstadoRelay(String value){
+        if(value.equals("TRUE")) {
+            if(!boolBuzzerOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
+                tvBuzzerStatus.setText("Encendido");
+                boolBuzzerOn = true;
+                btnBuzzerOff.setEnabled(true);
+                btnBuzzerOn.setEnabled(false);
+            }
+        } else {
+            if(boolBuzzerOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
+                tvBuzzerStatus.setText("Apagado");
+                boolBuzzerOn = false;
+                btnBuzzerOff.setEnabled(false);
+                btnBuzzerOn.setEnabled(false);
+            }
+        }
+    }
+
+    private class ReceptorEventoActuador extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            String actuatorName = intent.getExtras().keySet().toString();
+            String value = intent.getStringExtra(actuatorName);
+            switch(actuatorName){
+                case "BUZZER":
+                    cambiarEstadoBuzzer(value);
+                    break;
+                case "RELAY":
+                    cambiarEstadoRelay(value);
+                    break;
+                default:
+                    //do nothing...
+            }
+            
+            
+        }
     }
 
 }

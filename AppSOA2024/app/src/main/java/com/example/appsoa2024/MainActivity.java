@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, Actuadores.class);
                 startActivity(intent);
+
             }
         });
 
@@ -149,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class ReceptorEventos extends BroadcastReceiver {
+    private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             //Solamente me interesa reportar el cambio de estado.
             if(intent.hasExtra("STATE")){
@@ -162,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public class ReceptorValoresSensores extends BroadcastReceiver {
+    private class ReceptorValoresSensores extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             //Leo todos los extras del intent en un for each
             runOnUiThread(() -> {
@@ -199,6 +200,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    }
+
+    private void publishMessage(String topic, String message){
+        //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
+        mqttHandler.publish(topic,message);
     }
 
 }
