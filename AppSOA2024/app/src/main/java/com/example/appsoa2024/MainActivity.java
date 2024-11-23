@@ -14,6 +14,8 @@ import android.app.Activity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtEstadoPuerta;
     private TextView txtEstadoEmbebido;
 
+    private RecyclerView rvMessages;
+    private MessageAdapter messageAdapter;
+    private List<String> messages = new ArrayList<>();
+
+
     final Handler handler = new Handler();
 
     @Override
@@ -71,6 +78,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        // Inicializar RecyclerView
+        rvMessages = findViewById(R.id.rvMessages);
+        rvMessages.setLayoutManager(new LinearLayoutManager(this));
+
+        // Configurar adaptador
+        messageAdapter = new MessageAdapter(messages);
+        rvMessages.setAdapter(messageAdapter);
 
         //Inicializo resto de los textviews
         txtUltimaActualizacion = (TextView)findViewById(R.id.tvUltimaActualizacion);
@@ -152,15 +167,21 @@ public class MainActivity extends AppCompatActivity {
 
     private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            //Solamente me interesa reportar el cambio de estado.
-            if(intent.hasExtra("STATE")){
-                String sensorValue = intent.getStringExtra("STATE");
-                Toast.makeText(getApplicationContext(),"Cambio de estado a " + sensorValue,Toast.LENGTH_LONG).show();
-                actualizarFechaYHora();
+            for (String key : intent.getExtras().keySet()) {
+                String value = intent.getStringExtra(key);
+                value = value.substring(value.indexOf("=") + 1);
+                if (value != null) {
+                    addMessageToRecyclerView(value);
+                    actualizarFechaYHora();
+                }
             }
-
         }
+    }
 
+    private void addMessageToRecyclerView(String message) {
+        messages.add(0, message);
+        messageAdapter.notifyItemInserted(0);
+        rvMessages.scrollToPosition(0);
     }
 
     private class ReceptorValoresSensores extends BroadcastReceiver {
@@ -206,5 +227,4 @@ public class MainActivity extends AppCompatActivity {
         //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
         mqttHandler.publish(topic,message);
     }
-
 }

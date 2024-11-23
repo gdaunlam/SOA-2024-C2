@@ -127,8 +127,8 @@ public class MqttHandler implements MqttCallback {
             case TOPIC_SENSORS_EVENTS:
                 i = new Intent(ACTION_EVENTS_RECEIVE);
                 String key = messageMqtt.substring(0,messageMqtt.indexOf("="));
-                String valueEvent = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
-                i.putExtra(key,valueEvent);
+                String eventMessage = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
+                i.putExtra(key, eventMessage);
                 break;
             case TOPIC_ACTUATOR_BUZZER_STATE:
                 i = new Intent(ACTION_EVENTS_ACTUATOR_STATUS);
@@ -152,6 +152,4 @@ public class MqttHandler implements MqttCallback {
     public void deliveryComplete(IMqttDeliveryToken token) {
 
     }
-
-
 }

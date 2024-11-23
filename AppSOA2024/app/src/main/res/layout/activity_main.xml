@@ -13,17 +13,11 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="#282a36"
         android:padding="16dp"
         tools:context=".MainActivity">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
-
-        </ScrollView>
         <TextView
             android:id="@+id/tvNombre"
             android:layout_width="wrap_content"
@@ -62,7 +56,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
 
-
         <androidx.cardview.widget.CardView
             android:id="@+id/cardSensors"
             android:layout_width="0dp"
@@ -79,8 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp"
-                >
+                android:padding="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -217,6 +209,45 @@
 
         </androidx.cardview.widget.CardView>
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMessages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardBackgroundColor="#44475a"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardSensors">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Eventos Recientes"
+                    android:textColor="#f8f8f2"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMessages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingBottom="8dp"
+                    android:overScrollMode="never" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <Button
             android:id="@+id/btnIrActuadores"
             android:layout_width="0dp"
@@ -224,13 +255,13 @@
             android:layout_marginTop="24dp"
             android:backgroundTint="#ff79c6"
             android:padding="16dp"
-            android:text="Ir a actuadores"
+            android:text="@string/actuatorsButton"
             android:textColor="#282a36"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardSensors" />
+            app:layout_constraintTop_toBottomOf="@id/cardMessages" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

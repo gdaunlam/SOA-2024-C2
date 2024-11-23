@@ -75,7 +75,7 @@
 
                 <TextView
                     android:id="@+id/tvBuzzerState"
-                    android:layout_width="83dp"
+                    android:layout_width="236dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="ON"
