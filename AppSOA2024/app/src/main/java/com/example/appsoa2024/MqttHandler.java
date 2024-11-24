@@ -20,10 +20,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Random;
 
 public class MqttHandler implements MqttCallback {
     private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ;
-    private static final String CLIENT_ID = "mqttx_f9bfd3ww";
+    private static final String CLIENT_ID = generateRandomString();
     private static final String USER="emqx";
     private static final String PASS="public";
 
@@ -38,12 +39,11 @@ public class MqttHandler implements MqttCallback {
     public static final String ACTION_CONNECTION_LOST ="com.example.intentservice.intent.action.CONNECTION_LOST";
     public static final String ACTION_VALUES_RECEIVE = "com.example.intentservice.intent.action.VALUES_RECEIVE";
     public static final String ACTION_EVENTS_ACTUATOR_STATUS = "com.example.intentservice.intent.action.ACTUATOR.STATUS";
-     private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
+    private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
         put("1", "LOW");
         put("2", "MEDIUM");
         put("3", "HIGH");
         put("4", "CRITICAL");
-        //etc
     }};
     private static MqttClient client;
     private Context mContext;
@@ -127,8 +127,8 @@ public class MqttHandler implements MqttCallback {
             case TOPIC_SENSORS_EVENTS:
                 i = new Intent(ACTION_EVENTS_RECEIVE);
                 String key = messageMqtt.substring(0,messageMqtt.indexOf("="));
-                String valueEvent = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
-                i.putExtra(key,valueEvent);
+                String eventMessage = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
+                i.putExtra(key, eventMessage);
                 break;
             case TOPIC_ACTUATOR_BUZZER_STATE:
                 i = new Intent(ACTION_EVENTS_ACTUATOR_STATUS);
@@ -153,5 +153,17 @@ public class MqttHandler implements MqttCallback {
 
     }
 
+    private static String generateRandomString() {
+        int CLIENT_ID_LENGHT = 8;
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder randomString = new StringBuilder();
+        Random random = new Random();
 
+        for (int i = 0; i < CLIENT_ID_LENGHT; i++) {
+            int index = random.nextInt(characters.length());
+            randomString.append(characters.charAt(index));
+        }
+
+        return randomString.toString();
+    }
 }
