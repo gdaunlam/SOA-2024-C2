@@ -34,11 +34,13 @@ public class MqttHandler implements MqttCallback {
     public static final String TOPIC_SENSORS_VALUES = "/abscgwrrrt22/sensors/values";
     public static final String TOPIC_ACTUATOR_RELAY_STATE = "/abscgwrrrt22/actuators/status/relay";
     public static final String TOPIC_ACTUATOR_BUZZER_STATE = "/abscgwrrrt22/actuators/status/buzzer";
+    public static final String TOPIC_SMARTPHONES = "/abscgwrrrt22/smartphones";
 
     public static final String ACTION_EVENTS_RECEIVE ="com.example.intentservice.intent.action.EVENTS_RECEIVE";
     public static final String ACTION_CONNECTION_LOST ="com.example.intentservice.intent.action.CONNECTION_LOST";
     public static final String ACTION_VALUES_RECEIVE = "com.example.intentservice.intent.action.VALUES_RECEIVE";
     public static final String ACTION_EVENTS_ACTUATOR_STATUS = "com.example.intentservice.intent.action.ACTUATOR.STATUS";
+    public static final String ACTION_EVENTS_SMARTPHONES = "com.example.intentservice.intent.action.SMARTPHONES";
     private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
         put("1", "LOW");
         put("2", "MEDIUM");
@@ -138,6 +140,12 @@ public class MqttHandler implements MqttCallback {
                 i = new Intent(ACTION_EVENTS_ACTUATOR_STATUS);
                 i.putExtra("RELAY",messageMqtt);
                 break;
+            case TOPIC_SMARTPHONES:
+                if(messageMqtt.equals("ALARMA")) {
+                    i = new Intent(ACTION_EVENTS_SMARTPHONES);
+                    i.putExtra("type","ALARMA");
+                }
+
             default:
                 System.out.println("Error topic desconocido.");
                 break;

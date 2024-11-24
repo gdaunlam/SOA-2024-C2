@@ -31,6 +31,7 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private boolean boolRelayOn = false;
     private boolean boolBuzzerOn = false;
     private ReceptorEventoActuador receiverEventoActuador = new ReceptorEventoActuador();
+    private ReceptorAlarma receiverAlarma = new ReceptorAlarma();
     private CheckBox cbBuzzerStatus;
     private CheckBox cbRelayStatus;
     private Button btnReleOn;
@@ -38,6 +39,7 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private Button btnBuzzerOn;
     private Button btnBuzzerOff;
     public IntentFilter filterReceive;
+    public IntentFilter filterSmartphoneEvent;
 
 
     @Override
@@ -159,6 +161,7 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         }
         unregisterSenser();
         unregisterReceiver(receiverEventoActuador);
+        unregisterReceiver(receiverAlarma);
         super.onDestroy();
     }
 
@@ -177,11 +180,12 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         {
             if ((Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong))
             {
-                Log.i("sensor", "running");
+                Log.i("sensor", "Sensor de acelerometro detectado. Enviando alarma a todos los celulares conectados a la app.");
+                publishMessage(MqttHandler.TOPIC_SMARTPHONES, "ALARMA");
                 //Chequeo para que se reproduzca solamente si no esta activado
-                if (!mplayer.isPlaying()) {
+                /*if (!mplayer.isPlaying()) {
                     mplayer.start();
-                }
+                }*/
             }
         }
     }
@@ -197,6 +201,7 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_BUZZER_STATE);
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_RELAY_STATE);
+        subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
     }
     private void publishMessage(String topic, String message){
         //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
@@ -213,8 +218,11 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
 
     private void configureBroadcastReceiver() {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
-
+        filterSmartphoneEvent = new IntentFilter(MqttHandler.ACTION_EVENTS_SMARTPHONES);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
+        filterSmartphoneEvent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        registerReceiver(receiverAlarma,filterSmartphoneEvent);
         registerReceiver(receiverEventoActuador, filterReceive);
     }
 
@@ -270,4 +278,13 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
             }
         }
     }
+
+    private class ReceptorAlarma extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            if (!mplayer.isPlaying()) {
+                mplayer.start();
+            }
+        }
+    }
+
 }
