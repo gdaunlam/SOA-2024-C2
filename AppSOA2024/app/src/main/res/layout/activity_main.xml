@@ -56,6 +56,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
 
+        <CheckBox
+            android:id="@+id/mqttCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/mqtt"
+            android:textColor="#f8f8f2"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvEstado"
+            app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
+
         <androidx.cardview.widget.CardView
             android:id="@+id/cardSensors"
             android:layout_width="0dp"
@@ -262,6 +275,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardMessages" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

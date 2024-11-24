@@ -1,35 +1,31 @@
 package com.example.appsoa2024;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import android.app.Activity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -48,12 +44,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtCO2;
     private TextView txtEstadoPuerta;
     private TextView txtEstadoEmbebido;
-
+    private CheckBox mqttCheckBox;
     private RecyclerView rvMessages;
     private MessageAdapter messageAdapter;
     private List<String> messages = new ArrayList<>();
-
-
     final Handler handler = new Handler();
 
     @Override
@@ -95,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         txtEstadoPuerta = (TextView)findViewById(R.id.tvPuertaValor);
         txtEstadoEmbebido = (TextView)findViewById(R.id.tvEstado);
 
+        mqttCheckBox = (CheckBox)findViewById(R.id.mqttCheckBox);
+
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
         connect();
@@ -127,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         }
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
+        mqttCheckBox.setChecked(true);
     }
 
     //Metodo que crea y conrefigurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
@@ -161,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
     public class ConnectionLost extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(),"Conexion Perdida",Toast.LENGTH_SHORT).show();
+            mqttCheckBox.setChecked(false);
             connect();
         }
     }
@@ -168,11 +166,38 @@ public class MainActivity extends AppCompatActivity {
     private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             for (String key : intent.getExtras().keySet()) {
+                System.out.println(key);
                 String value = intent.getStringExtra(key);
+                assert value != null;
                 value = value.substring(value.indexOf("=") + 1);
-                if (value != null) {
-                    addMessageToRecyclerView(value);
-                    actualizarFechaYHora();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                String currentDateTime = sdf.format(new Date());
+                addMessageToRecyclerView(value + " " + currentDateTime);
+                actualizarFechaYHora();
+                if (key.equals("STATE")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        String channelId = "states_notification";
+                        CharSequence channelName = "My App Notifications";
+                        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                        NotificationChannel channel = new NotificationChannel(channelId,
+                                channelName, importance);
+                        NotificationManager notificationManager = (NotificationManager)
+                        context.getSystemService(Context.NOTIFICATION_SERVICE);
+                        notificationManager.createNotificationChannel(channel);
+                    }
+
+                    // Build the notification
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context,
+                            "states_notification")
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle("App Notification")
+                            .setContentText(value)
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(value))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                    // Send the notification
+                    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    notificationManager.notify(0, builder.build());
                 }
             }
         }

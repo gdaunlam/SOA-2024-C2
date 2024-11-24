@@ -20,10 +20,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Random;
 
 public class MqttHandler implements MqttCallback {
     private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ;
-    private static final String CLIENT_ID = "mqttx_f9bfd3ww";
+    private static final String CLIENT_ID = generateRandomString();
     private static final String USER="emqx";
     private static final String PASS="public";
 
@@ -151,5 +152,19 @@ public class MqttHandler implements MqttCallback {
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
 
+    }
+
+    private static String generateRandomString() {
+        int CLIENT_ID_LENGHT = 8;
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder randomString = new StringBuilder();
+        Random random = new Random();
+
+        for (int i = 0; i < CLIENT_ID_LENGHT; i++) {
+            int index = random.nextInt(characters.length());
+            randomString.append(characters.charAt(index));
+        }
+
+        return randomString.toString();
     }
 }
