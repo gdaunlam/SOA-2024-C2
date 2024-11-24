@@ -1,34 +1,37 @@
 package com.example.appsoa2024;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import android.app.Activity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
-
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +49,16 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtCO2;
     private TextView txtEstadoPuerta;
     private TextView txtEstadoEmbebido;
+    private CheckBox mqttCheckBox;
+    private RecyclerView rvMessages;
+    private MessageAdapter messageAdapter;
+    private List<String> messages = new ArrayList<>();
+    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>() {{
+        put("LOW", Color.GREEN);
+        put("MEDIUM", Color.YELLOW);
+        put("HIGH", Color.parseColor("#FF9800"));
+        put("CRITICAL", Color.RED);
+    }};
 
     final Handler handler = new Handler();
 
@@ -72,6 +85,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Inicializar RecyclerView
+        rvMessages = findViewById(R.id.rvMessages);
+        rvMessages.setLayoutManager(new LinearLayoutManager(this));
+
+        // Configurar adaptador
+        messageAdapter = new MessageAdapter(messages);
+        rvMessages.setAdapter(messageAdapter);
+        adjustRecyclerViewHeight();
+
         //Inicializo resto de los textviews
         txtUltimaActualizacion = (TextView)findViewById(R.id.tvUltimaActualizacion);
         txtTemperatura = (TextView)findViewById(R.id.tvTemperaturaValor);
@@ -79,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         txtHumedad = (TextView)findViewById(R.id.tvHumedadValor);
         txtEstadoPuerta = (TextView)findViewById(R.id.tvPuertaValor);
         txtEstadoEmbebido = (TextView)findViewById(R.id.tvEstado);
+
+        mqttCheckBox = (CheckBox)findViewById(R.id.mqttCheckBox);
 
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
@@ -112,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
         }
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
+        mqttCheckBox.setChecked(true);
     }
 
     //Metodo que crea y conrefigurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
@@ -146,21 +171,83 @@ public class MainActivity extends AppCompatActivity {
     public class ConnectionLost extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(),"Conexion Perdida",Toast.LENGTH_SHORT).show();
+            mqttCheckBox.setChecked(false);
             connect();
         }
     }
 
     private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            //Solamente me interesa reportar el cambio de estado.
-            if(intent.hasExtra("STATE")){
-                String sensorValue = intent.getStringExtra("STATE");
-                Toast.makeText(getApplicationContext(),"Cambio de estado a " + sensorValue,Toast.LENGTH_LONG).show();
+            for (String key : intent.getExtras().keySet()) {
+                String value = intent.getStringExtra(key);
+                assert value != null;
+                value = value.substring(value.indexOf("=") + 1);
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                String currentDateTime = sdf.format(new Date());
+                addMessageToRecyclerView(value + " " + currentDateTime);
                 actualizarFechaYHora();
+
+                if (key.equals("STATE")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        String channelId = "states_notification";
+                        CharSequence channelName = "My App Notifications";
+                        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                        NotificationChannel channel = new NotificationChannel(channelId,
+                                channelName, importance);
+                        NotificationManager notificationManager = (NotificationManager)
+                        context.getSystemService(Context.NOTIFICATION_SERVICE);
+                        notificationManager.createNotificationChannel(channel);
+                    }
+
+                    int notificationId = (int) System.currentTimeMillis();
+
+                    // Build the notification
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context,
+                            "states_notification")
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle("App Notification")
+                            .setContentText(value)
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(value))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                    // Send the notification
+                    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    notificationManager.notify(notificationId, builder.build());
+                }
             }
-
         }
+    }
 
+    private void addMessageToRecyclerView(String message) {
+        messages.add(0, message);
+        messageAdapter.notifyItemInserted(0);
+        rvMessages.scrollToPosition(0);
+        adjustRecyclerViewHeight();
+    }
+
+    private void adjustRecyclerViewHeight() {
+        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (rvMessages.getChildCount() > 0) {
+                    // Obtener la altura de un ítem
+                    View listItem = rvMessages.getChildAt(0);
+                    int itemHeight = listItem.getHeight();
+
+                    // Calcular la altura total para 5 elementos
+                    int totalHeight = itemHeight * 5;
+
+                    // Ajustar la altura del RecyclerView
+                    ViewGroup.LayoutParams params = rvMessages.getLayoutParams();
+                    params.height = totalHeight;
+                    rvMessages.setLayoutParams(params);
+
+                    // Elimina el listener después de ajustar la altura
+                    rvMessages.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
     }
 
     private class ReceptorValoresSensores extends BroadcastReceiver {
@@ -188,13 +275,16 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case "STATE":
                             txtEstadoEmbebido.setText(sensorValue);
+                            Integer color = statesColors.get(sensorValue);
+                            if(color != null) {
+                                txtEstadoEmbebido.setTextColor(color);
+                            }
                             break;
                         default:
                             System.out.println("error Extra del Intent desconocido: " + extraName);
                             break;
                     }
                 }
-
                 actualizarFechaYHora();
             });
 
@@ -206,5 +296,4 @@ public class MainActivity extends AppCompatActivity {
         //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
         mqttHandler.publish(topic,message);
     }
-
 }

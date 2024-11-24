@@ -33,12 +33,12 @@ const char* ca_cert= \
 #define MQTT_TOPIC_SEND_VALUES "/abscgwrrrt22/sensors/values"
 #define MQTT_TOPIC_MUTE_BUZZER "/abscgwrrrt22/actuators/mute/buzzer"
 #define MQTT_TOPIC_MUTE_RELAY "/abscgwrrrt22/actuators/mute/relay"
-#define MQTT_TOPIC_SEND_BUZZER_STATUS = "/abscgwrrrt22/actuators/status/buzzer"
-#define MQTT_TOPIC_SEND_RELAY_STATUS = "/abscgwrrrt22/actuators/status/relay"
+#define MQTT_TOPIC_SEND_BUZZER_STATUS "/abscgwrrrt22/actuators/status/buzzer"
+#define MQTT_TOPIC_SEND_RELAY_STATUS "/abscgwrrrt22/actuators/status/relay"
 
 // WIFI
-#define WIFI_SSID "moto g52_5630"
-#define WIFI_PASS "12345678"
+#define WIFI_SSID "TeleCentro-efcb"
+#define WIFI_PASS "AZNGDMWQW5UZ"
 WiFiClientSecure wifiClient;
 PubSubClient mqttClient(wifiClient);
 
@@ -52,15 +52,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length)
   {
     message += (char)payload[i];
   }
+  Serial.println(String("C_EVT") + "=" + topic + "=" + message);
   if (strcmp(topic, MQTT_TOPIC_MUTE_BUZZER) == 0) 
   {
     MUTE_BUZZER = (strcmp(message.c_str(), "TRUE") == 0);
-    Serial.println("BUZZER STATUS TO: " + String(MUTE_BUZZER));
   }
   if (strcmp(topic, MQTT_TOPIC_MUTE_RELAY) == 0) 
   {
     MUTE_RELAY = (strcmp(message.c_str(), "TRUE") == 0);
-    Serial.println("RELAY STATUS TO: " + String(MUTE_RELAY));
   }
 }
 bool getMuteBuzzer(){
@@ -78,22 +77,22 @@ void sendValuesMqtt(String CO2_VALUE, String DIST_VALUE, String HUM_VALUE, Strin
     String(HUM_KEY) + "=" + HUM_VALUE + "|" +
     String(TEMP_KEY) + "=" + TEMP_VALUE + "|" +
     String(STATE_KEY) + "=" +  nextState;
+  //Serial.println(message);
   mqttClient.publish(MQTT_TOPIC_SEND_VALUES, message.c_str());
 }
-void sendEventsMqtt(String values, String sensor)
+void sendEventsMqtt(String values, String sensor, String message)
 {
-  String message = sensor + "=" + values;
-  mqttClient.publish(MQTT_TOPIC_SEND_EVENTS, message.c_str());
+  String msg = sensor + "=" + values + "=" + message;
+  //Serial.println(msg);
+  mqttClient.publish(MQTT_TOPIC_SEND_EVENTS, msg.c_str());
 }
 void sendEventsActuatorsMqtt(String actuator, String value){
-  if(strcmp(actuator,BUZZER_KEY) == 0){//Send buzzer status (If
+  if(strcmp(actuator.c_str(),BUZZER_KEY) == 0){
     mqttClient.publish(MQTT_TOPIC_SEND_BUZZER_STATUS, value.c_str());
   }
-
-  if(strcmp(actuator,RELAY_KEY) == 0 ) {
+  if(strcmp(actuator.c_str(),RELAY_KEY) == 0 ) {
     mqttClient.publish(MQTT_TOPIC_SEND_RELAY_STATUS, value.c_str());
-  }
-  
+  } 
 }
 bool checkWifiConnection() 
 {
@@ -119,8 +118,6 @@ void checkMqttConnection()
     Serial.println("Fallo en la conexión al servidor MQTT: " + String(mqttClient.state()));
     return;
   }
-  mqttClient.subscribe(MQTT_TOPIC_SEND_EVENTS);
-  mqttClient.subscribe(MQTT_TOPIC_SEND_VALUES);
   mqttClient.subscribe(MQTT_TOPIC_MUTE_BUZZER);
   mqttClient.subscribe(MQTT_TOPIC_MUTE_RELAY);
   Serial.println("MQTT OK");

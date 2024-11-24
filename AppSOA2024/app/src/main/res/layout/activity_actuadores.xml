@@ -67,20 +67,23 @@
 
                 <TextView
                     android:id="@+id/tvBuzzer"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Buzzer"
+                    android:layout_weight="1"
+                    android:text="@string/Buzzer"
                     android:textSize="20sp"
                     android:textColor="#f8f8f2"/>
 
-                <TextView
-                    android:id="@+id/tvBuzzerState"
-                    android:layout_width="83dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="ON"
+                <CheckBox
+                    android:id="@+id/cbBuzzerState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="#8be9fd"
+                    android:text="@string/cbBuzzer"
                     android:textColor="#f8f8f2"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:focusable="false"
+                    android:clickable="false"/>
 
             </LinearLayout>
 
@@ -118,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="0dp">
+                android:layout_marginBottom="16dp">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -129,24 +132,26 @@
 
                 <TextView
                         android:id="@+id/tvRele"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="Relé"
+                        android:layout_weight="1"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/Rele"
                         android:textSize="20sp"
                         android:textColor="#f8f8f2"
                         android:layout_marginBottom="16dp"/>
 
-                <TextView
-                    android:id="@+id/tvReleState"
+                <CheckBox
+                    android:id="@+id/cbReleState"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="16dp"
-                    android:layout_weight="1"
-                    android:text="ON"
+                    android:text="@string/cbRele"
                     android:textColor="#f8f8f2"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:buttonTint="#8be9fd"
+                    android:focusable="false"
+                    android:clickable="false"/>
+
             </LinearLayout>
 
             <LinearLayout

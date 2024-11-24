@@ -13,17 +13,11 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="#282a36"
         android:padding="16dp"
         tools:context=".MainActivity">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
-
-        </ScrollView>
         <TextView
             android:id="@+id/tvNombre"
             android:layout_width="wrap_content"
@@ -62,6 +56,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
 
+        <CheckBox
+            android:id="@+id/mqttCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/mqtt"
+            android:textColor="#f8f8f2"
+            android:textSize="16sp"
+            android:focusable="false"
+            android:clickable="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvEstado"
+            app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardSensors"
@@ -75,17 +83,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvEstado">
 
-            <LinearLayout
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:padding="24dp"
-                >
+                android:columnCount="2">
 
+                <!-- Temperatura -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -115,10 +124,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- Humedad -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -148,10 +159,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- CO2 -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -181,9 +194,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- Puerta -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -213,6 +229,46 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+            </GridLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMessages"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardBackgroundColor="#44475a"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardSensors">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Eventos Recientes"
+                    android:textColor="#f8f8f2"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMessages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingBottom="8dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="vertical" />
+
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
@@ -224,13 +280,13 @@
             android:layout_marginTop="24dp"
             android:backgroundTint="#ff79c6"
             android:padding="16dp"
-            android:text="Ir a actuadores"
+            android:text="@string/actuatorsButton"
             android:textColor="#282a36"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardSensors" />
+            app:layout_constraintTop_toBottomOf="@id/cardMessages" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
