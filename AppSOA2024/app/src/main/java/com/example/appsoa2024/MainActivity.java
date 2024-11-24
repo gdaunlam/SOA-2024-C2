@@ -2,16 +2,20 @@ package com.example.appsoa2024;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -27,6 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,6 +53,13 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvMessages;
     private MessageAdapter messageAdapter;
     private List<String> messages = new ArrayList<>();
+    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>() {{
+        put("LOW", Color.GREEN);
+        put("MEDIUM", Color.YELLOW);
+        put("HIGH", Color.parseColor("#FF9800"));
+        put("CRITICAL", Color.RED);
+    }};
+
     final Handler handler = new Handler();
 
     @Override
@@ -80,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         // Configurar adaptador
         messageAdapter = new MessageAdapter(messages);
         rvMessages.setAdapter(messageAdapter);
+        adjustRecyclerViewHeight();
 
         //Inicializo resto de los textviews
         txtUltimaActualizacion = (TextView)findViewById(R.id.tvUltimaActualizacion);
@@ -166,14 +179,15 @@ public class MainActivity extends AppCompatActivity {
     private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             for (String key : intent.getExtras().keySet()) {
-                System.out.println(key);
                 String value = intent.getStringExtra(key);
                 assert value != null;
                 value = value.substring(value.indexOf("=") + 1);
+
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                 String currentDateTime = sdf.format(new Date());
                 addMessageToRecyclerView(value + " " + currentDateTime);
                 actualizarFechaYHora();
+
                 if (key.equals("STATE")) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         String channelId = "states_notification";
@@ -186,6 +200,8 @@ public class MainActivity extends AppCompatActivity {
                         notificationManager.createNotificationChannel(channel);
                     }
 
+                    int notificationId = (int) System.currentTimeMillis();
+
                     // Build the notification
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(context,
                             "states_notification")
@@ -197,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // Send the notification
                     NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-                    notificationManager.notify(0, builder.build());
+                    notificationManager.notify(notificationId, builder.build());
                 }
             }
         }
@@ -207,6 +223,31 @@ public class MainActivity extends AppCompatActivity {
         messages.add(0, message);
         messageAdapter.notifyItemInserted(0);
         rvMessages.scrollToPosition(0);
+        adjustRecyclerViewHeight();
+    }
+
+    private void adjustRecyclerViewHeight() {
+        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (rvMessages.getChildCount() > 0) {
+                    // Obtener la altura de un ítem
+                    View listItem = rvMessages.getChildAt(0);
+                    int itemHeight = listItem.getHeight();
+
+                    // Calcular la altura total para 5 elementos
+                    int totalHeight = itemHeight * 5;
+
+                    // Ajustar la altura del RecyclerView
+                    ViewGroup.LayoutParams params = rvMessages.getLayoutParams();
+                    params.height = totalHeight;
+                    rvMessages.setLayoutParams(params);
+
+                    // Elimina el listener después de ajustar la altura
+                    rvMessages.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
     }
 
     private class ReceptorValoresSensores extends BroadcastReceiver {
@@ -234,13 +275,16 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case "STATE":
                             txtEstadoEmbebido.setText(sensorValue);
+                            Integer color = statesColors.get(sensorValue);
+                            if(color != null) {
+                                txtEstadoEmbebido.setTextColor(color);
+                            }
                             break;
                         default:
                             System.out.println("error Extra del Intent desconocido: " + extraName);
                             break;
                     }
                 }
-
                 actualizarFechaYHora();
             });
 
