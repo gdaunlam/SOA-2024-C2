@@ -3,6 +3,11 @@ package com.example.appsoa2024;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
@@ -30,19 +35,25 @@ import android.content.IntentFilter;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private final static float AcelerometerMaxValueToSong = 30;
+    private SensorManager sensor;
+    private MediaPlayer mplayer;
 
     private MqttHandler mqttHandler;
     public IntentFilter filterReceive;
     public IntentFilter filterConncetionLost;
     public IntentFilter filterSensorValues;
+    public IntentFilter filterSmartphoneEvent;
     private ReceptorEventos receiverEventos = new ReceptorEventos();
     private ConnectionLost connectionLost =new ConnectionLost();
     private ReceptorValoresSensores receiverSensores = new ReceptorValoresSensores();
+    private ReceptorAlarma receiverAlarma = new ReceptorAlarma();
     private TextView txtUltimaActualizacion;
     private TextView txtTemperatura;
     private TextView txtHumedad;
@@ -85,6 +96,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Configurar el sensor
+        sensor = (SensorManager) getSystemService(SENSOR_SERVICE);
+        registerSenser();
+        mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
+        mplayer.setOnPreparedListener (
+                new MediaPlayer.OnPreparedListener()
+                {
+                    public void onPrepared(MediaPlayer arg0)
+                    {
+                        mplayer.setVolume(1.0f, 1.0f);
+                    }
+                }
+        );
+
         // Inicializar RecyclerView
         rvMessages = findViewById(R.id.rvMessages);
         rvMessages.setLayoutManager(new LinearLayoutManager(this));
@@ -115,9 +140,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         mqttHandler.disconnect();
         super.onDestroy();
+        unregisterSenser();
         unregisterReceiver(receiverEventos);
         unregisterReceiver(receiverSensores);
+        unregisterReceiver(receiverAlarma);
         unregisterReceiver(connectionLost);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        registerSenser();
+        super.onResume();
+        mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
+        if (mplayer != null) {
+            mplayer.setVolume(1.0f, 1.0f);
+        }
     }
 
     //Funciones para la comunicacion via MQTT
@@ -134,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, 500);
         }
+        subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
         subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
         mqttCheckBox.setChecked(true);
@@ -147,11 +186,14 @@ public class MainActivity extends AppCompatActivity {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_RECEIVE);
         filterConncetionLost = new IntentFilter(MqttHandler.ACTION_CONNECTION_LOST);
         filterSensorValues = new IntentFilter(MqttHandler.ACTION_VALUES_RECEIVE);
+        filterSmartphoneEvent = new IntentFilter(MqttHandler.ACTION_EVENTS_SMARTPHONES);
+        filterSmartphoneEvent.addCategory(Intent.CATEGORY_DEFAULT);
 
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
         filterConncetionLost.addCategory(Intent.CATEGORY_DEFAULT);
         filterSensorValues.addCategory(Intent.CATEGORY_DEFAULT);
 
+        registerReceiver(receiverAlarma,filterSmartphoneEvent);
         registerReceiver(receiverEventos, filterReceive);
         registerReceiver(connectionLost,filterConncetionLost);
         registerReceiver(receiverSensores,filterSensorValues);
@@ -176,19 +218,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class ReceptorAlarma extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            if (!mplayer.isPlaying()) {
+                mplayer.start();
+            }
+        }
+    }
+
     private class ReceptorEventos extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             for (String key : intent.getExtras().keySet()) {
-                String value = intent.getStringExtra(key);
-                assert value != null;
-                value = value.substring(value.indexOf("=") + 1);
+                String message = intent.getStringExtra(key).split("=")[1];
+                String value = intent.getStringExtra(key).split("=")[0];
 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                 String currentDateTime = sdf.format(new Date());
-                addMessageToRecyclerView(value + " " + currentDateTime);
+                addMessageToRecyclerView(message + " " + currentDateTime);
                 actualizarFechaYHora();
 
-                if (key.equals("STATE")) {
+                if (key.equals("STATE") &&  Arrays.asList("critical", "high").contains(value)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         String channelId = "states_notification";
                         CharSequence channelName = "My App Notifications";
@@ -207,8 +256,8 @@ public class MainActivity extends AppCompatActivity {
                             "states_notification")
                             .setSmallIcon(R.drawable.ic_notification)
                             .setContentTitle("App Notification")
-                            .setContentText(value)
-                            .setStyle(new NotificationCompat.BigTextStyle().bigText(value))
+                            .setContentText(message)
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
                     // Send the notification
@@ -287,13 +336,35 @@ public class MainActivity extends AppCompatActivity {
                 }
                 actualizarFechaYHora();
             });
-
         }
-
     }
 
-    private void publishMessage(String topic, String message){
-        //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
-        mqttHandler.publish(topic,message);
+    @Override
+    public void onSensorChanged(SensorEvent event)
+    {
+        int sensorType = event.sensor.getType();
+        float[] values = event.values;
+        if (sensorType == Sensor.TYPE_ACCELEROMETER)
+        {
+            if ((Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong))
+            {
+                Log.i("sensor", "Sensor de acelerometro detectado. Enviando alarma a todos los celulares conectados a la app.");
+                mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES,"ALARMA");
+            }
+        }
     }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy)
+    {
+
+    }
+    private void registerSenser()
+    {
+        sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+    }
+    private void unregisterSenser()
+    {
+        sensor.unregisterListener(this);
+    }
+
 }

@@ -22,16 +22,11 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Actuadores extends AppCompatActivity implements SensorEventListener {
-
-    private final static float AcelerometerMaxValueToSong = 30;
-    private MediaPlayer mplayer;
-    private SensorManager sensor;
+public class Actuadores extends AppCompatActivity{
     private MqttHandler mqttHandler;
     private boolean boolRelayOn = false;
     private boolean boolBuzzerOn = false;
     private ReceptorEventoActuador receiverEventoActuador = new ReceptorEventoActuador();
-    private ReceptorAlarma receiverAlarma = new ReceptorAlarma();
     private CheckBox cbBuzzerStatus;
     private CheckBox cbRelayStatus;
     private Button btnReleOn;
@@ -39,28 +34,11 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     private Button btnBuzzerOn;
     private Button btnBuzzerOff;
     public IntentFilter filterReceive;
-    public IntentFilter filterSmartphoneEvent;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_actuadores);
-
-        //Configurar el sensor
-        sensor = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-        mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
-        mplayer.setOnPreparedListener (
-                new OnPreparedListener()
-                {
-                    public void onPrepared(MediaPlayer arg0)
-                    {
-                        Log.e("ready!","ready!");
-                        mplayer.setVolume(1.0f, 1.0f);
-                    }
-                }
-        );
 
         // Configurar el botón Atrás
         Button btnBack = findViewById(R.id.btnBack);
@@ -129,70 +107,9 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
     }
 
     @Override
-    protected void onResume()
-    {
-        super.onResume();
-        registerSenser();
-
-        // Inicializar el MediaPlayer y establecer el volumen
-        mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
-        if (mplayer != null) {
-            mplayer.setVolume(1.0f, 1.0f);
-        }
-    }
-
-    @Override
-    protected void onPause()
-    {
-        unregisterSenser();
-        // Liberar el MediaPlayer
-        if (mplayer != null) {
-            mplayer.release();
-            mplayer = null;
-        }
-        super.onPause();
-    }
-
-    @Override
     protected void onDestroy() {
-        if (mplayer != null) {
-            mplayer.release();
-            mplayer = null;
-        }
-        unregisterSenser();
         unregisterReceiver(receiverEventoActuador);
-        unregisterReceiver(receiverAlarma);
         super.onDestroy();
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy)
-    {
-
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event)
-    {
-        int sensorType = event.sensor.getType();
-        float[] values = event.values;
-        if (sensorType == Sensor.TYPE_ACCELEROMETER)
-        {
-            if ((Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong))
-            {
-                Log.i("sensor", "Sensor de acelerometro detectado. Enviando alarma a todos los celulares conectados a la app.");
-                publishMessage(MqttHandler.TOPIC_SMARTPHONES, "ALARMA");
-                //Chequeo para que se reproduzca solamente si no esta activado
-                /*if (!mplayer.isPlaying()) {
-                    mplayer.start();
-                }*/
-            }
-        }
-    }
-
-    private void registerSenser()
-    {
-        sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     private void connect()
@@ -211,18 +128,9 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
         mqttHandler.subscribe(topic);
     }
 
-    private void unregisterSenser()
-    {
-        sensor.unregisterListener(this);
-    }
-
     private void configureBroadcastReceiver() {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
-        filterSmartphoneEvent = new IntentFilter(MqttHandler.ACTION_EVENTS_SMARTPHONES);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
-        filterSmartphoneEvent.addCategory(Intent.CATEGORY_DEFAULT);
-
-        registerReceiver(receiverAlarma,filterSmartphoneEvent);
         registerReceiver(receiverEventoActuador, filterReceive);
     }
 
@@ -278,13 +186,4 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
             }
         }
     }
-
-    private class ReceptorAlarma extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
-            if (!mplayer.isPlaying()) {
-                mplayer.start();
-            }
-        }
-    }
-
 }
