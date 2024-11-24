@@ -238,15 +238,15 @@ public class Actuadores extends AppCompatActivity implements SensorEventListener
 
     private void cambiarEstadoRelay(String value){
         if(value.equals("TRUE")) {
-            if(!boolBuzzerOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
-                cbBuzzerStatus.setChecked(true);
+            if(!boolRelayOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
+                cbRelayStatus.setChecked(true);
                 boolRelayOn = true;
                 btnReleOff.setEnabled(true);
                 btnReleOn.setEnabled(false);
             }
         } else {
-            if(boolBuzzerOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
-                cbBuzzerStatus.setChecked(false);
+            if(boolRelayOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
+                cbRelayStatus.setChecked(false);
                 boolRelayOn = false;
                 btnReleOff.setEnabled(false);
                 btnReleOn.setEnabled(true);

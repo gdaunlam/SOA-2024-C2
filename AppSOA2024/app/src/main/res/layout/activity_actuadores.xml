@@ -82,7 +82,8 @@
                     android:text="@string/cbBuzzer"
                     android:textColor="#f8f8f2"
                     android:textSize="20sp"
-                    android:enabled="false"/>
+                    android:focusable="false"
+                    android:clickable="false"/>
 
             </LinearLayout>
 
@@ -148,7 +149,8 @@
                     android:textColor="#f8f8f2"
                     android:textSize="20sp"
                     android:buttonTint="#8be9fd"
-                    android:enabled="false" />
+                    android:focusable="false"
+                    android:clickable="false"/>
 
             </LinearLayout>
 
