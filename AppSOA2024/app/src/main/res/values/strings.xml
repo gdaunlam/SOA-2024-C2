@@ -3,5 +3,9 @@
     <string name="name">Ambiente Controlado Pyme</string>
     <string name="actuatorsButton">Ir a Actuadores</string>
     <string name="mqtt">Mqtt</string>
+    <string name="cbBuzzer">ON</string>
+    <string name="cbRele">ON</string>
+    <string name="Buzzer">Buzzer</string>
+    <string name="Rele">Rele</string>
     <string name="inputEstadoPuerta">Abierto</string>
 </resources>

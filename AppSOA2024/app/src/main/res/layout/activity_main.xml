@@ -65,6 +65,8 @@
             android:text="@string/mqtt"
             android:textColor="#f8f8f2"
             android:textSize="16sp"
+            android:buttonTint="#8be9fd"
+            android:enabled="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/tvEstado"
             app:layout_constraintTop_toBottomOf="@id/tvUltimaActualizacion" />
