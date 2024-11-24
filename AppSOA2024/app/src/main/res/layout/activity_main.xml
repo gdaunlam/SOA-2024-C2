@@ -81,16 +81,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvEstado">
 
-            <LinearLayout
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="24dp"
+                android:columnCount="2">
 
+                <!-- Temperatura -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -120,10 +122,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- Humedad -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -153,10 +157,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- CO2 -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -186,9 +192,12 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- Puerta -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="8dp"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -218,7 +227,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-            </LinearLayout>
+            </GridLayout>
 
         </androidx.cardview.widget.CardView>
 
@@ -253,9 +262,11 @@
                     android:id="@+id/rvMessages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxHeight="400dp"
                     android:clipToPadding="false"
                     android:paddingBottom="8dp"
-                    android:overScrollMode="never" />
+                    android:overScrollMode="never"
+                    android:scrollbars="vertical" />
 
             </LinearLayout>
 
@@ -275,7 +286,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardMessages" />
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

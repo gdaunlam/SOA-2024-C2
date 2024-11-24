@@ -39,12 +39,11 @@ public class MqttHandler implements MqttCallback {
     public static final String ACTION_CONNECTION_LOST ="com.example.intentservice.intent.action.CONNECTION_LOST";
     public static final String ACTION_VALUES_RECEIVE = "com.example.intentservice.intent.action.VALUES_RECEIVE";
     public static final String ACTION_EVENTS_ACTUATOR_STATUS = "com.example.intentservice.intent.action.ACTUATOR.STATUS";
-     private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
+    private static final Hashtable<String, String> dictEstados = new Hashtable<String, String>() {{
         put("1", "LOW");
         put("2", "MEDIUM");
         put("3", "HIGH");
         put("4", "CRITICAL");
-        //etc
     }};
     private static MqttClient client;
     private Context mContext;
