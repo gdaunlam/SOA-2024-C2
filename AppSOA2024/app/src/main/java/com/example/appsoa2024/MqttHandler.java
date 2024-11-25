@@ -152,8 +152,7 @@ public class MqttHandler implements MqttCallback {
 
         }
 
-        mContext.sendBroadcast(i);  //Envio el intent al broadcast
-
+        if(i != null)  mContext.sendBroadcast(i);  //Envio el intent al broadcast
     }
 
     @Override
