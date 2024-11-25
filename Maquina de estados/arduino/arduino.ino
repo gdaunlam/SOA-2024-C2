@@ -81,7 +81,8 @@ const int MAX_EVENTS = 23;
 typedef int EVENTS_GROUPS;
 const EVENTS_GROUPS SENSORS_EVENTS = 0;
 const EVENTS_GROUPS EMBED_EVENTS = 1;
-const int EVENTS_GROUPS_COUNT = 2;
+const int NOTIFY_STATUS_EVENT = 2;
+const int EVENTS_GROUPS_COUNT = 3;
 
 typedef int SENSOR;
 const SENSOR CO2_SENSOR = 0;
@@ -373,6 +374,11 @@ EVENT getEvent() {
       return getSensorsEvent();
     case EMBED_EVENTS:
       return getEmbedEvent();
+    case NOTIFY_STATUS_EVENT:
+      sendValuesMqtt(String(CO2_VALUE), String(DIST_VALUE), String(HUM_VALUE), String(TEMP_VALUE), String(nextState));
+      sendEventsActuatorsMqtt(BUZZER_KEY,String(isBuzzerOn()));
+      sendEventsActuatorsMqtt(RELAY_KEY,String(isRelayOn()));
+      return NONE_EVENT;
   }
 }
 
@@ -385,9 +391,6 @@ void setup() {
 
 void loop() {
   loopConnections();
-  sendValuesMqtt(String(CO2_VALUE), String(DIST_VALUE), String(HUM_VALUE), String(TEMP_VALUE), String(nextState));
-  sendEventsActuatorsMqtt(BUZZER_KEY,String(isBuzzerOn()));
-  sendEventsActuatorsMqtt(RELAY_KEY,String(isRelayOn()));
   loopActuators();
 
   EVENT event = getEvent();
