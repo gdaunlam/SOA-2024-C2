@@ -58,8 +58,8 @@ public class Actuadores extends AppCompatActivity{
             public void onClick(View v) {
                 // Lógica para encender el buzzer
                 publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
-                btnBuzzerOn.setEnabled(false);
-                btnBuzzerOff.setEnabled(true);
+                //btnBuzzerOn.setEnabled(false);
+                //btnBuzzerOff.setEnabled(true);
             }
         });
 
@@ -68,8 +68,8 @@ public class Actuadores extends AppCompatActivity{
             public void onClick(View v) {
                 // Lógica para apagar el buzzer
                 publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
-                btnBuzzerOn.setEnabled(false);
-                btnBuzzerOff.setEnabled(false);
+                //btnBuzzerOn.setEnabled(false);
+                //btnBuzzerOff.setEnabled(false);
             }
         });
 
@@ -82,8 +82,8 @@ public class Actuadores extends AppCompatActivity{
             public void onClick(View v) {
                 // Lógica para encender el relé
                 publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
-                btnReleOn.setEnabled(false);
-                btnReleOff.setEnabled(true);
+                //btnReleOn.setEnabled(false);
+                //btnReleOff.setEnabled(true);
             }
         });
 
@@ -92,8 +92,8 @@ public class Actuadores extends AppCompatActivity{
             public void onClick(View v) {
                 // Lógica para apagar el relé
                 publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
-                btnReleOn.setEnabled(true);
-                btnReleOff.setEnabled(false);
+               //btnReleOn.setEnabled(true);
+                //btnReleOff.setEnabled(false);
             }
         });
 
@@ -135,54 +135,56 @@ public class Actuadores extends AppCompatActivity{
     }
 
     private void cambiarEstadoBuzzer(String value){
-        if(value.equals("TRUE")) {
+        if(value.equals("1")) {
             if(!boolBuzzerOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
                 cbBuzzerStatus.setChecked(true);
                 boolBuzzerOn = true;
-                btnBuzzerOff.setEnabled(true);
-                btnBuzzerOn.setEnabled(false);
+                //btnBuzzerOff.setEnabled(true);
+                //btnBuzzerOn.setEnabled(false);
             }
         } else {
             if(boolBuzzerOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
                 cbBuzzerStatus.setChecked(false);
                 boolBuzzerOn = false;
-                btnBuzzerOff.setEnabled(false);
-                btnBuzzerOn.setEnabled(true);
+                //btnBuzzerOff.setEnabled(false);
+                //btnBuzzerOn.setEnabled(true);
             }
         }
     }
 
     private void cambiarEstadoRelay(String value){
-        if(value.equals("TRUE")) {
+        if(value.equals("1")) {
             if(!boolRelayOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
                 cbRelayStatus.setChecked(true);
                 boolRelayOn = true;
-                btnReleOff.setEnabled(true);
-                btnReleOn.setEnabled(false);
+                //btnReleOff.setEnabled(true);
+                //btnReleOn.setEnabled(false);
             }
         } else {
             if(boolRelayOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
                 cbRelayStatus.setChecked(false);
                 boolRelayOn = false;
-                btnReleOff.setEnabled(false);
-                btnReleOn.setEnabled(true);
+                //btnReleOff.setEnabled(false);
+                //btnReleOn.setEnabled(true);
             }
         }
     }
 
     private class ReceptorEventoActuador extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            String actuatorName = intent.getExtras().keySet().toString();
-            String value = intent.getStringExtra(actuatorName);
-            switch(actuatorName){
-                case "BUZZER":
-                    cambiarEstadoBuzzer(value);
-                    break;
-                case "RELAY":
-                    cambiarEstadoRelay(value);
-                    break;
-                default:
-                    //do nothing...
+
+            for(String actuatorName : intent.getExtras().keySet()) {
+                String value = intent.getStringExtra(actuatorName);
+                switch(actuatorName){
+                    case "BUZZER":
+                        cambiarEstadoBuzzer(value);
+                        break;
+                    case "RELAY":
+                        cambiarEstadoRelay(value);
+                        break;
+                    default:
+                        //do nothing...
+                }
             }
         }
     }
