@@ -20,7 +20,6 @@ import android.widget.Button;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -98,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //Configurar el sensor
         sensor = (SensorManager) getSystemService(SENSOR_SERVICE);
-        registerSenser();
+        registerSensor();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
         mplayer.setOnPreparedListener (
                 new MediaPlayer.OnPreparedListener()
@@ -140,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onDestroy() {
         mqttHandler.disconnect();
         super.onDestroy();
-        unregisterSenser();
+        sensor.unregisterListener(this);
         unregisterReceiver(receiverEventos);
         unregisterReceiver(receiverSensores);
         unregisterReceiver(receiverAlarma);
@@ -150,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume()
     {
-        registerSenser();
+        registerSensor();
         super.onResume();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
         if (mplayer != null) {
@@ -158,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    //Funciones para la comunicacion via MQTT
     private void connect() {
         try {
             mqttHandler.connect();
@@ -172,17 +170,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }, 500);
         }
-        subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
-        subscribeToTopic(MqttHandler.TOPIC_SENSORS_EVENTS);
-        subscribeToTopic(MqttHandler.TOPIC_SENSORS_VALUES);
+        mqttHandler.subscribe(MqttHandler.TOPIC_SMARTPHONES);
+        mqttHandler.subscribe(MqttHandler.TOPIC_SENSORS_EVENTS);
+        mqttHandler.subscribe(MqttHandler.TOPIC_SENSORS_VALUES);
         mqttCheckBox.setChecked(true);
     }
 
-    //Metodo que crea y conrefigurar un broadcast receiver para comunicar el servicio que recibe los mensaje del servidor
-    //con la activity principal
     private void configurarBroadcastReciever() {
-        //se asocia(registra) la  accion RESPUESTA_OPERACION, para que cuando el Servicio de recepcion la ejecute
-        //se invoque automaticamente el OnRecive del objeto receiver
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_RECEIVE);
         filterConncetionLost = new IntentFilter(MqttHandler.ACTION_CONNECTION_LOST);
         filterSensorValues = new IntentFilter(MqttHandler.ACTION_VALUES_RECEIVE);
@@ -197,10 +191,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         registerReceiver(receiverEventos, filterReceive);
         registerReceiver(connectionLost,filterConncetionLost);
         registerReceiver(receiverSensores,filterSensorValues);
-    }
-
-    private void subscribeToTopic(String topic){
-        mqttHandler.subscribe(topic);
     }
 
     private void actualizarFechaYHora(){
@@ -274,7 +264,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         rvMessages.scrollToPosition(0);
         adjustRecyclerViewHeight();
     }
-
     private void adjustRecyclerViewHeight() {
         rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -344,13 +333,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
         int sensorType = event.sensor.getType();
         float[] values = event.values;
-        if (sensorType == Sensor.TYPE_ACCELEROMETER)
-        {
-            if ((Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong))
-            {
-                Log.i("sensor", "Sensor de acelerometro detectado. Enviando alarma a todos los celulares conectados a la app.");
-                mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES,"ALARMA");
-            }
+        boolean accelerometerActivated = sensorType == Sensor.TYPE_ACCELEROMETER && (Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong);
+        if (accelerometerActivated) {
+            mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES,"ALARMA");
         }
     }
     @Override
@@ -358,13 +343,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
 
     }
-    private void registerSenser()
+    private void registerSensor()
     {
         sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
     }
-    private void unregisterSenser()
-    {
-        sensor.unregisterListener(this);
-    }
-
 }

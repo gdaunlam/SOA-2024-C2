@@ -24,7 +24,6 @@ import android.widget.Toast;
 
 public class Actuadores extends AppCompatActivity{
     private MqttHandler mqttHandler;
-    private boolean boolRelayOn = false;
     private boolean boolBuzzerOn = false;
     private ReceptorEventoActuador receiverEventoActuador = new ReceptorEventoActuador();
     private CheckBox cbBuzzerStatus;
@@ -52,48 +51,32 @@ public class Actuadores extends AppCompatActivity{
         // Configurar los botones del Buzzer
         btnBuzzerOn = findViewById(R.id.btnBuzzerOn);
         btnBuzzerOff = findViewById(R.id.btnBuzzerOff);
-
         btnBuzzerOn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lógica para encender el buzzer
-                publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
-                //btnBuzzerOn.setEnabled(false);
-                //btnBuzzerOff.setEnabled(true);
+                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
             }
         });
-
         btnBuzzerOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lógica para apagar el buzzer
-                publishMessage(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
-                //btnBuzzerOn.setEnabled(false);
-                //btnBuzzerOff.setEnabled(false);
+                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
             }
         });
 
         // Configurar los botones del Relé
         btnReleOn = findViewById(R.id.btnReleOn);
         btnReleOff = findViewById(R.id.btnReleOff);
-
         btnReleOn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lógica para encender el relé
-                publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
-                //btnReleOn.setEnabled(false);
-                //btnReleOff.setEnabled(true);
+                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
             }
         });
-
         btnReleOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lógica para apagar el relé
-                publishMessage(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
-               //btnReleOn.setEnabled(true);
-                //btnReleOff.setEnabled(false);
+                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
             }
         });
 
@@ -111,7 +94,6 @@ public class Actuadores extends AppCompatActivity{
         unregisterReceiver(receiverEventoActuador);
         super.onDestroy();
     }
-
     private void connect()
     {
         subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
@@ -120,54 +102,13 @@ public class Actuadores extends AppCompatActivity{
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_RELAY_STATE);
         subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
     }
-    private void publishMessage(String topic, String message){
-        //Toast.makeText(this, "Publishing message: " + message + "; Topico: " + topic, Toast.LENGTH_SHORT).show();
-        mqttHandler.publish(topic,message);
-    }
     private void subscribeToTopic(String topic){
         mqttHandler.subscribe(topic);
     }
-
     private void configureBroadcastReceiver() {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
         registerReceiver(receiverEventoActuador, filterReceive);
-    }
-
-    private void cambiarEstadoBuzzer(String value){
-        if(value.equals("1")) {
-            if(!boolBuzzerOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
-                cbBuzzerStatus.setChecked(true);
-                boolBuzzerOn = true;
-                //btnBuzzerOff.setEnabled(true);
-                //btnBuzzerOn.setEnabled(false);
-            }
-        } else {
-            if(boolBuzzerOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
-                cbBuzzerStatus.setChecked(false);
-                boolBuzzerOn = false;
-                //btnBuzzerOff.setEnabled(false);
-                //btnBuzzerOn.setEnabled(true);
-            }
-        }
-    }
-
-    private void cambiarEstadoRelay(String value){
-        if(value.equals("1")) {
-            if(!boolRelayOn) { //Si llegó un evento diciendo que esta prendido, y en la app no lo esta, cambiarlo
-                cbRelayStatus.setChecked(true);
-                boolRelayOn = true;
-                //btnReleOff.setEnabled(true);
-                //btnReleOn.setEnabled(false);
-            }
-        } else {
-            if(boolRelayOn) { //Si llegó un evento diciendo que esta apagado, y en la app esta prendido, cambiarlo
-                cbRelayStatus.setChecked(false);
-                boolRelayOn = false;
-                //btnReleOff.setEnabled(false);
-                //btnReleOn.setEnabled(true);
-            }
-        }
     }
 
     private class ReceptorEventoActuador extends BroadcastReceiver {
@@ -182,10 +123,17 @@ public class Actuadores extends AppCompatActivity{
                     case "RELAY":
                         cambiarEstadoRelay(value);
                         break;
-                    default:
-                        //do nothing...
                 }
             }
         }
+    }
+    private void cambiarEstadoBuzzer(String value){
+        boolean buzeerON = value.equals("1") && !boolBuzzerOn;
+        cbBuzzerStatus.setChecked(buzeerON);
+        boolBuzzerOn = buzeerON;
+    }
+    private void cambiarEstadoRelay(String value){
+        boolean relatON = value.equals("1") && !boolBuzzerOn;
+        cbRelayStatus.setChecked(relatON);
     }
 }

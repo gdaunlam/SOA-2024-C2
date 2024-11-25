@@ -21,10 +21,11 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 public class MqttHandler implements MqttCallback {
     private static final String BROKER_URL = "ssl://broker.emqx.io:8883"; // port: 8883 URL: broker.emqx.io ;
-    private static final String CLIENT_ID = generateRandomString();
+    private static final String CLIENT_ID = UUID.randomUUID().toString().replaceAll("-", "");
     private static final String USER="emqx";
     private static final String PASS="public";
 
@@ -49,6 +50,7 @@ public class MqttHandler implements MqttCallback {
     }};
     private static MqttClient client;
     private Context mContext;
+
     public MqttHandler(Context mContext){
         this.mContext = mContext;
     }
@@ -99,8 +101,6 @@ public class MqttHandler implements MqttCallback {
 
     @Override
     public void connectionLost(Throwable cause) {
-        Log.d("MAIN ACTIVITY","conexion perdida"+ cause.getMessage().toString());
-
         Intent i = new Intent(ACTION_CONNECTION_LOST);
         mContext.sendBroadcast(i);
     }
@@ -158,19 +158,5 @@ public class MqttHandler implements MqttCallback {
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
 
-    }
-
-    private static String generateRandomString() {
-        int CLIENT_ID_LENGHT = 8;
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder randomString = new StringBuilder();
-        Random random = new Random();
-
-        for (int i = 0; i < CLIENT_ID_LENGHT; i++) {
-            int index = random.nextInt(characters.length());
-            randomString.append(characters.charAt(index));
-        }
-
-        return randomString.toString();
     }
 }
