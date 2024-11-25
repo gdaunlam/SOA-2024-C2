@@ -78,7 +78,6 @@
                     android:id="@+id/cbBuzzerState"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:buttonTint="#8be9fd"
                     android:text="@string/cbBuzzer"
                     android:textColor="#f8f8f2"
                     android:textSize="20sp"
@@ -148,7 +147,6 @@
                     android:text="@string/cbRele"
                     android:textColor="#f8f8f2"
                     android:textSize="20sp"
-                    android:buttonTint="#8be9fd"
                     android:focusable="false"
                     android:clickable="false"/>
 
