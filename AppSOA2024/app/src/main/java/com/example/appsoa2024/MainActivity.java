@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
@@ -25,13 +26,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
+
 import org.eclipse.paho.client.mqttv3.MqttException;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,8 +43,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener 
-{
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private final static float AcelerometerMaxValueToSong = 30;
     private SensorManager sensor;
     private MediaPlayer mplayer;
@@ -50,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public IntentFilter filterSensorValues;
     public IntentFilter filterSmartphoneEvent;
     private EventsReceiver receiverEvents = new EventsReceiver();
-    private ConnectionLost connectionLost =new ConnectionLost();
+    private ConnectionLost connectionLost = new ConnectionLost();
     private SensorsValuesReceiver receiverSensors = new SensorsValuesReceiver();
     private AlarmReceiver receiverAlarm = new AlarmReceiver();
     private TextView txtLastUpdate;
@@ -64,8 +67,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private MessageAdapter messageAdapter;
     private List<String> messages = new ArrayList<>();
     private final static String ORANGE = "#FF9800";
-    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>()
-    {{
+    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>() {{
         put("LOW", Color.GREEN);
         put("MEDIUM", Color.YELLOW);
         put("HIGH", Color.parseColor(ORANGE));
@@ -75,8 +77,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     final Handler handler = new Handler();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
@@ -89,11 +90,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //Logica para ir a la pantalla de actuadores
         Button btnIrActuadores = findViewById(R.id.btnIrActuadores);
 
-        btnIrActuadores.setOnClickListener(new View.OnClickListener()
-        {
+        btnIrActuadores.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, Actuators.class);
                 startActivity(intent);
             }
@@ -103,11 +102,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensor = (SensorManager) getSystemService(SENSOR_SERVICE);
         registerSensor();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
-        mplayer.setOnPreparedListener (
-                new MediaPlayer.OnPreparedListener()
-                {
-                    public void onPrepared(MediaPlayer arg0)
-                    {
+        mplayer.setOnPreparedListener(
+                new MediaPlayer.OnPreparedListener() {
+                    public void onPrepared(MediaPlayer arg0) {
                         double volume = 1.0;
                         mplayer.setVolume((float) volume, (float) volume);
                     }
@@ -124,13 +121,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         adjustRecyclerViewHeight();
 
         //Inicializo resto de los textviews
-        txtLastUpdate = (TextView)findViewById(R.id.tvUltimaActualizacion);
-        txtTemperature = (TextView)findViewById(R.id.tvTemperaturaValor);
-        txtCO2 = (TextView)findViewById(R.id.tvCO2Valor);
-        txtHumidity = (TextView)findViewById(R.id.tvHumedadValor);
-        txtStateDoor = (TextView)findViewById(R.id.tvPuertaValor);
-        txtStateEmbed = (TextView)findViewById(R.id.tvEstado);
-        mqttCheckBox = (CheckBox)findViewById(R.id.mqttCheckBox);
+        txtLastUpdate = (TextView) findViewById(R.id.tvUltimaActualizacion);
+        txtTemperature = (TextView) findViewById(R.id.tvTemperaturaValor);
+        txtCO2 = (TextView) findViewById(R.id.tvCO2Valor);
+        txtHumidity = (TextView) findViewById(R.id.tvHumedadValor);
+        txtStateDoor = (TextView) findViewById(R.id.tvPuertaValor);
+        txtStateEmbed = (TextView) findViewById(R.id.tvEstado);
+        mqttCheckBox = (CheckBox) findViewById(R.id.mqttCheckBox);
 
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
@@ -140,8 +137,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         mqttHandler.disconnect();
         super.onDestroy();
         sensor.unregisterListener(this);
@@ -152,33 +148,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         registerSensor();
         super.onResume();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
-        if (mplayer != null)
-        {
+        if (mplayer != null) {
             double volume = 1.0;
             mplayer.setVolume((float) volume, (float) volume);
         }
     }
 
-    private void connect()
-    {
-        try
-        {
+    private void connect() {
+        try {
             mqttHandler.connect();
-            Toast.makeText(getApplicationContext(),"Conexion establecida",Toast.LENGTH_SHORT).show();
-        } catch (MqttException e)
-        {
+            Toast.makeText(getApplicationContext(), "Conexion establecida", Toast.LENGTH_SHORT).show();
+        } catch (MqttException e) {
             long delayMillis = 500;
-            Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
-            handler.postDelayed(new Runnable()
-            {
+            Log.d("Aplicacion", e.getMessage() + "  " + e.getCause());
+            handler.postDelayed(new Runnable() {
                 @Override
-                public void run()
-                {
+                public void run() {
                     connect();
                 }
             }, delayMillis);
@@ -189,8 +178,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mqttCheckBox.setChecked(true);
     }
 
-    private void configureBroadcastReceiver()
-    {
+    private void configureBroadcastReceiver() {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_RECEIVE);
         filterConnectionLost = new IntentFilter(MqttHandler.ACTION_CONNECTION_LOST);
         filterSensorValues = new IntentFilter(MqttHandler.ACTION_VALUES_RECEIVE);
@@ -201,47 +189,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         filterConnectionLost.addCategory(Intent.CATEGORY_DEFAULT);
         filterSensorValues.addCategory(Intent.CATEGORY_DEFAULT);
 
-        registerReceiver(receiverAlarm,filterSmartphoneEvent);
+        registerReceiver(receiverAlarm, filterSmartphoneEvent);
         registerReceiver(receiverEvents, filterReceive);
         registerReceiver(connectionLost, filterConnectionLost);
-        registerReceiver(receiverSensors,filterSensorValues);
+        registerReceiver(receiverSensors, filterSensorValues);
     }
 
-    private void updateDateAndHour()
-    {
+    private void updateDateAndHour() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         String currentDateTime = sdf.format(new Date());
         txtLastUpdate.setText("Ultima actualizacion: " + currentDateTime);
     }
 
     //Clases
-    public class ConnectionLost extends BroadcastReceiver
-    {
-        public void onReceive(Context context, Intent intent)
-        {
-            Toast.makeText(getApplicationContext(),"Conexion Perdida",Toast.LENGTH_SHORT).show();
+    public class ConnectionLost extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getApplicationContext(), "Conexion Perdida", Toast.LENGTH_SHORT).show();
             mqttCheckBox.setChecked(false);
             connect();
         }
     }
 
-    private class AlarmReceiver extends BroadcastReceiver
-    {
-        public void onReceive(Context context, Intent intent)
-        {
-            if (!mplayer.isPlaying())
-            {
+    private class AlarmReceiver extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            if (!mplayer.isPlaying()) {
                 mplayer.start();
             }
         }
     }
 
-    private class EventsReceiver extends BroadcastReceiver
-    {
-        public void onReceive(Context context, Intent intent)
-        {
-            for (String key : intent.getExtras().keySet())
-            {
+    private class EventsReceiver extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            for (String key : intent.getExtras().keySet()) {
                 String message = intent.getStringExtra(key).split("=")[1];
                 String value = intent.getStringExtra(key).split("=")[0];
 
@@ -250,17 +229,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 addMessageToRecyclerView(message + " " + currentDateTime);
                 updateDateAndHour();
 
-                if (key.equals("STATE") &&  Arrays.asList("critical", "high").contains(value))
-                {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                    {
+                if (key.equals("STATE") && Arrays.asList("critical", "high").contains(value)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         String channelId = "states_notification";
                         CharSequence channelName = "My App Notifications";
                         int importance = NotificationManager.IMPORTANCE_DEFAULT;
                         NotificationChannel channel = new NotificationChannel(channelId,
                                 channelName, importance);
                         NotificationManager notificationManager = (NotificationManager)
-                        context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                context.getSystemService(Context.NOTIFICATION_SERVICE);
                         notificationManager.createNotificationChannel(channel);
                     }
 
@@ -276,31 +253,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
                     // Send the notification
-                    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                     notificationManager.notify(notificationId, builder.build());
                 }
             }
         }
     }
 
-    private void addMessageToRecyclerView(String message)
-    {
+    private void addMessageToRecyclerView(String message) {
         int position = 0;
         messages.add(position, message);
         messageAdapter.notifyItemInserted(position);
         rvMessages.scrollToPosition(position);
         adjustRecyclerViewHeight();
     }
-    private void adjustRecyclerViewHeight()
-    {
-        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
-        {
+
+    private void adjustRecyclerViewHeight() {
+        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void onGlobalLayout()
-            {
+            public void onGlobalLayout() {
                 int childCount = 0;
-                if (rvMessages.getChildCount() > childCount)
-                {
+                if (rvMessages.getChildCount() > childCount) {
                     int index = 0;
                     int rows = 5;
                     View listItem = rvMessages.getChildAt(index);
@@ -319,27 +292,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    private class SensorsValuesReceiver extends BroadcastReceiver
-    {
-        public void onReceive(Context context, Intent intent)
-        {
+    private class SensorsValuesReceiver extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
             runOnUiThread(() -> {
-                for(String extraName: intent.getExtras().keySet())
-                {
+                for (String extraName : intent.getExtras().keySet()) {
                     String sensorValue = intent.getStringExtra(extraName);
-                    switch(extraName)
-                    {
+                    switch (extraName) {
                         case "CO2":
                             txtCO2.setText(sensorValue + " ppm");
                             break;
                         case "DIST":
                             double distance = 5;
-                            if(Float.parseFloat(sensorValue) > (float) distance)
-                            {
+                            if (Float.parseFloat(sensorValue) > (float) distance) {
                                 txtStateDoor.setText("ABIERTA");
-                            }
-                            else
-                            {
+                            } else {
                                 txtStateDoor.setText("CERRADA");
                             }
                             break;
@@ -352,8 +318,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         case "STATE":
                             txtStateEmbed.setText(sensorValue);
                             Integer color = statesColors.get(sensorValue);
-                            if(color != null)
-                            {
+                            if (color != null) {
                                 txtStateEmbed.setTextColor(color);
                             }
                             break;
@@ -368,23 +333,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event)
-    {
+    public void onSensorChanged(SensorEvent event) {
         int sensorType = event.sensor.getType();
         float[] values = event.values;
         boolean accelerometerActivated = sensorType == Sensor.TYPE_ACCELEROMETER && (Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong);
-        if (accelerometerActivated)
-        {
-            mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES,"ALARMA");
+        if (accelerometerActivated) {
+            mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES, "ALARMA");
         }
     }
+
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy)
-    {
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-    private void registerSensor()
-    {
+
+    private void registerSensor() {
         sensor.registerListener(this, sensor.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
     }
 }

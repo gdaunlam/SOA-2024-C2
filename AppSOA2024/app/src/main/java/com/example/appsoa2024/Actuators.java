@@ -11,8 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 
-public class Actuators extends AppCompatActivity
-{
+public class Actuators extends AppCompatActivity {
     private MqttHandler mqttHandler;
     private ActuatorEventReceiver actuatorEventReceiver = new ActuatorEventReceiver();
     private final static String ON = "1";
@@ -25,18 +24,15 @@ public class Actuators extends AppCompatActivity
     public IntentFilter filterReceive;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_actuadores);
 
         // Configurar el botón Atrás
         Button btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(new View.OnClickListener()
-        {
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 finish();
             }
         });
@@ -45,20 +41,17 @@ public class Actuators extends AppCompatActivity
         buttonBuzzerOn = findViewById(R.id.btnBuzzerOn);
         buttonBuzzerOff = findViewById(R.id.btnBuzzerOff);
 
-        buttonBuzzerOn.setOnClickListener(new View.OnClickListener()
-        {
+        buttonBuzzerOn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
-                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
+            public void onClick(View v) {
+                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE, "FALSE");
             }
         });
 
-        buttonBuzzerOff.setOnClickListener(new View.OnClickListener()
-        {
+        buttonBuzzerOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
+                mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE, "TRUE");
             }
         });
 
@@ -66,20 +59,17 @@ public class Actuators extends AppCompatActivity
         buttonReleOn = findViewById(R.id.btnReleOn);
         buttonReleOff = findViewById(R.id.btnReleOff);
 
-        buttonReleOn.setOnClickListener(new View.OnClickListener()
-        {
+        buttonReleOn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
-                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
+            public void onClick(View v) {
+                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE, "FALSE");
             }
         });
 
-        buttonReleOff.setOnClickListener(new View.OnClickListener()
-        {
+        buttonReleOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
+                mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE, "TRUE");
             }
         });
 
@@ -93,38 +83,34 @@ public class Actuators extends AppCompatActivity
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         unregisterReceiver(actuatorEventReceiver);
         super.onDestroy();
     }
-    private void connect()
-    {
+
+    private void connect() {
         subscribeToTopic(MqttHandler.TOPIC_RELAY_MUTE);
         subscribeToTopic(MqttHandler.TOPIC_BUZZER_MUTE);
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_BUZZER_STATE);
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_RELAY_STATE);
         subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
     }
-    private void subscribeToTopic(String topic)
-    {
+
+    private void subscribeToTopic(String topic) {
         mqttHandler.subscribe(topic);
     }
-    private void configureBroadcastReceiver()
-    {
+
+    private void configureBroadcastReceiver() {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
         registerReceiver(actuatorEventReceiver, filterReceive);
     }
 
-    private class ActuatorEventReceiver extends BroadcastReceiver
-    {
-        public void onReceive(Context context, Intent intent)
-        {
-            for(String actuatorName : intent.getExtras().keySet())
-            {
+    private class ActuatorEventReceiver extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {
+            for (String actuatorName : intent.getExtras().keySet()) {
                 String value = intent.getStringExtra(actuatorName);
-                switch(actuatorName){
+                switch (actuatorName) {
                     case "BUZZER":
                         changeStateBuzzer(value);
                         break;
@@ -135,13 +121,13 @@ public class Actuators extends AppCompatActivity
             }
         }
     }
-    private void changeStateBuzzer(String value)
-    {
+
+    private void changeStateBuzzer(String value) {
         boolean buzzerON = value.equals(ON);
         cbBuzzerStatus.setChecked(buzzerON);
     }
-    private void changeStateRelay(String value)
-    {
+
+    private void changeStateRelay(String value) {
         boolean relayON = value.equals(ON);
         cbRelayStatus.setChecked(relayON);
     }
