@@ -36,7 +36,6 @@ const char* ca_cert= \
 #define MQTT_TOPIC_SEND_BUZZER_STATUS "/abscgwrrrt22/actuators/status/buzzer"
 #define MQTT_TOPIC_SEND_RELAY_STATUS "/abscgwrrrt22/actuators/status/relay"
 
-// WIFI
 #define WIFI_SSID "TeleCentro-efcb"
 #define WIFI_PASS "AZNGDMWQW5UZ"
 WiFiClientSecure wifiClient;
@@ -52,7 +51,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length)
   {
     message += (char)payload[i];
   }
-  Serial.println(String("C_EVT") + "=" + topic + "=" + message);
   if (strcmp(topic, MQTT_TOPIC_MUTE_BUZZER) == 0) 
   {
     MUTE_BUZZER = (strcmp(message.c_str(), "TRUE") == 0);
@@ -77,13 +75,11 @@ void sendValuesMqtt(String CO2_VALUE, String DIST_VALUE, String HUM_VALUE, Strin
     String(HUM_KEY) + "=" + HUM_VALUE + "|" +
     String(TEMP_KEY) + "=" + TEMP_VALUE + "|" +
     String(STATE_KEY) + "=" +  nextState;
-  //Serial.println(message);
   mqttClient.publish(MQTT_TOPIC_SEND_VALUES, message.c_str());
 }
 void sendEventsMqtt(String values, String sensor, String message)
 {
   String msg = sensor + "=" + values + "=" + message;
-  //Serial.println(msg);
   mqttClient.publish(MQTT_TOPIC_SEND_EVENTS, msg.c_str());
 }
 void sendEventsActuatorsMqtt(String actuator, String value){
@@ -97,30 +93,24 @@ void sendEventsActuatorsMqtt(String actuator, String value){
 bool checkWifiConnection() 
 {
   if (WiFi.isConnected()) return true; 
-  Serial.println("Conectando wifi...");
   bool success = WiFi.reconnect();
   if (!success)
   {
-    Serial.println("Fallo en la conexión al servidor wifi: " + String(WiFi.status()));
     return false;
   }
-  Serial.println("WIFI OK");
   return false;
 }
 
 void checkMqttConnection() 
 {
   if (mqttClient.connected()) return;
-  Serial.println("Conectando al servidor MQTT...");
   bool success = mqttClient.connect("esp32_sensors_esn332prls",MQTT_USER,MQTT_PASSWORD);
   if (!success)
   {
-    Serial.println("Fallo en la conexión al servidor MQTT: " + String(mqttClient.state()));
     return;
   }
   mqttClient.subscribe(MQTT_TOPIC_MUTE_BUZZER);
   mqttClient.subscribe(MQTT_TOPIC_MUTE_RELAY);
-  Serial.println("MQTT OK");
 }
 
 void initConnections()

@@ -4,21 +4,28 @@
 #define PIN_LED_GREEN 22
 #define PIN_RELAY 14
 #define PIN_SERVO 5
-  
+
+#define CERO_DEG_VALUE 1000
+#define ONE_HUNDRED_EIGHTY_DEG_VALUE 2000
+#define STANDARD_PERIOD_HERTZ 50
+
+#define ONE_HUNDRED_EIGHTY_DEG 180
+#define CERO_DEG 0
+
 Servo servo;
 bool servoOn = false;
 int servoPos = 0;
 void turnServoOn() {
   servoOn = true;
-  servo.writeMicroseconds(2000);
+  servo.writeMicroseconds(ONE_HUNDRED_EIGHTY_DEG_VALUE);
 }
 void turnServoOff() {
   servoOn = false;
-  servo.writeMicroseconds(1000);  // 500us es 0 grados
+  servo.writeMicroseconds(CERO_DEG_VALUE);
 }
 void setServoPos() {
-  if(servoPos > 0 && servoOn) servoPos --;
-  if(servoPos < 180 && !servoOn) servoPos ++;
+  if(servoPos > CERO_DEG && servoOn) servoPos --;
+  if(servoPos < ONE_HUNDRED_EIGHTY_DEG && !servoOn) servoPos ++;
 }
 
 bool buzzerOn = false;
@@ -68,8 +75,8 @@ void initActuators() {
   pinMode(PIN_LED_GREEN, OUTPUT);
   pinMode(PIN_RELAY, OUTPUT);
   
-  servo.setPeriodHertz(50);           // standard 50 hz servo
-	servo.attach(PIN_SERVO, 1000, 2000); // attaches the servo on pin 18 to the servo object
+  servo.setPeriodHertz(STANDARD_PERIOD_HERTZ);
+	servo.attach(PIN_SERVO, CERO_DEG_VALUE, ONE_HUNDRED_EIGHTY_DEG_VALUE);
 }
 
 void loopActuators() {
@@ -77,6 +84,6 @@ void loopActuators() {
   bool mustOnRelay = isRelayOn();
   digitalWrite(PIN_BUZZER, mustOnBuzzer ? LOW: HIGH);
   digitalWrite(PIN_RELAY, mustOnRelay ? LOW: HIGH);
-  //setServoPos();
-  //servo.write(servoPos);
+  setServoPos();
+  servo.write(servoPos);
 }

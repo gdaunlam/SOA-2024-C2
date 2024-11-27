@@ -1,6 +1,8 @@
 #include "DHTesp.h"
 #include <ESP32Servo.h>
 
+#define BEGIN_SERIAL_PORT 115200
+
 #define CO2_KEY "CO2"
 #define DIST_KEY "DIST"
 #define HUM_KEY "HUM"
@@ -176,28 +178,28 @@ void closeWindow() {
 void none() {}
 
 transition state_table_actions[MAX_EVENTS][MAX_STATES] = {
-  { low, none, none, none, none },                           // INIT_EVENT
-  { low, none, low, low, low },                              // L_EVENT
-  { mid, mid, none, mid, mid },                              // M_EVENT
-  { high, high, high, none, high },                          // H_EVENT
-  { crit, crit, crit, crit, none },                          // C_EVENT
+  { low, none, none, none, none },                                      // INIT_EVENT
+  { low, none, low, low, low },                                         // L_EVENT
+  { mid, mid, none, mid, mid },                                         // M_EVENT
+  { high, high, high, none, high },                                     // H_EVENT
+  { crit, crit, crit, crit, none },                                     // C_EVENT
   { openWindow, openWindow, openWindow, openWindow, openWindow },       // CO2_C_EVENT
   { openWindow, openWindow, openWindow, openWindow, openWindow },       // CO2_H_EVENT
   { closeWindow, closeWindow, closeWindow, closeWindow, closeWindow },  // CO2_M_EVENT
   { closeWindow, closeWindow, closeWindow, closeWindow, closeWindow },  // CO2_L_EVENT
-  { doorOpen, doorOpen, doorOpen, doorOpen, doorOpen },            // DIST_M_EVENT
-  { doorClosed, doorClosed, doorClosed, doorClosed, doorClosed },  // DIST_L_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MIN_HUM_C_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MAX_HUM_C_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MIN_HUM_H_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MAX_HUM_H_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MIN_HUM_M_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MAX_HUM_M_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // MAX_HUM_L_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // TEMP_C_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // TEMP_H_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // TEMP_M_EVENT
-  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },  // TEMP_L_EVENT
+  { doorOpen, doorOpen, doorOpen, doorOpen, doorOpen },                 // DIST_M_EVENT
+  { doorClosed, doorClosed, doorClosed, doorClosed, doorClosed },       // DIST_L_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MIN_HUM_C_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MAX_HUM_C_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MIN_HUM_H_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MAX_HUM_H_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MIN_HUM_M_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MAX_HUM_M_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // MAX_HUM_L_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // TEMP_C_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // TEMP_H_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // TEMP_M_EVENT
+  { ntfySensor, ntfySensor, ntfySensor, ntfySensor, ntfySensor },       // TEMP_L_EVENT
   { none, none, none, none, none },  // NONE_EVENT
   // INIT_STATE, L_STATE, M_STATE, H_STATE, C_STATE
 };
@@ -383,7 +385,7 @@ EVENT getEvent() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(BEGIN_SERIAL_PORT);
   initSensors();
   initActuators();
   initConnections();

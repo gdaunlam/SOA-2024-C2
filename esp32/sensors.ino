@@ -2,6 +2,7 @@
 #define PIN_ECHO_ULTRASONIDO 12
 #define PIN_DHT 32
 #define MQ135_PIN 34
+#define SPEED_SOUND_CONVERTION 0.017
 
 DHTesp dht;
 
@@ -16,7 +17,7 @@ float readUltrasonicDistance()
   digitalWrite(PIN_TRIGGER_ULTRASONIDO, HIGH);
   digitalWrite(PIN_TRIGGER_ULTRASONIDO, LOW);
   float distance = pulseIn(PIN_ECHO_ULTRASONIDO, HIGH);
-  return distance * 0.017;
+  return distance * SPEED_SOUND_CONVERTION;
 }
 
 float readC02Data() {
