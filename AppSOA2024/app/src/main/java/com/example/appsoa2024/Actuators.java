@@ -9,55 +9,53 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
-
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnPreparedListener;
-import android.util.Log;
 import android.widget.CheckBox;
-import android.widget.TextView;
-import android.widget.Toast;
 
-public class Actuadores extends AppCompatActivity{
+public class Actuators extends AppCompatActivity
+{
     private MqttHandler mqttHandler;
-    private boolean boolBuzzerOn = false;
-    private ReceptorEventoActuador receiverEventoActuador = new ReceptorEventoActuador();
+    private ActuatorEventReceiver actuatorEventReceiver = new ActuatorEventReceiver();
+    private final static String ON = "1";
     private CheckBox cbBuzzerStatus;
     private CheckBox cbRelayStatus;
-    private Button btnReleOn;
-    private Button btnReleOff;
-    private Button btnBuzzerOn;
-    private Button btnBuzzerOff;
+    private Button buttonReleOn;
+    private Button buttonReleOff;
+    private Button buttonBuzzerOn;
+    private Button buttonBuzzerOff;
     public IntentFilter filterReceive;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_actuadores);
 
         // Configurar el botón Atrás
         Button btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(new View.OnClickListener() {
+        btnBack.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
-                finish(); // Esto cerrará la actividad actual y volverá a la anterior
+            public void onClick(View v)
+            {
+                finish();
             }
         });
 
         // Configurar los botones del Buzzer
-        btnBuzzerOn = findViewById(R.id.btnBuzzerOn);
-        btnBuzzerOff = findViewById(R.id.btnBuzzerOff);
-        btnBuzzerOn.setOnClickListener(new View.OnClickListener() {
+        buttonBuzzerOn = findViewById(R.id.btnBuzzerOn);
+        buttonBuzzerOff = findViewById(R.id.btnBuzzerOff);
+
+        buttonBuzzerOn.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"FALSE");
             }
         });
-        btnBuzzerOff.setOnClickListener(new View.OnClickListener() {
+
+        buttonBuzzerOff.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View v) {
                 mqttHandler.publish(mqttHandler.TOPIC_BUZZER_MUTE,"TRUE");
@@ -65,15 +63,20 @@ public class Actuadores extends AppCompatActivity{
         });
 
         // Configurar los botones del Relé
-        btnReleOn = findViewById(R.id.btnReleOn);
-        btnReleOff = findViewById(R.id.btnReleOff);
-        btnReleOn.setOnClickListener(new View.OnClickListener() {
+        buttonReleOn = findViewById(R.id.btnReleOn);
+        buttonReleOff = findViewById(R.id.btnReleOff);
+
+        buttonReleOn.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"FALSE");
             }
         });
-        btnReleOff.setOnClickListener(new View.OnClickListener() {
+
+        buttonReleOff.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View v) {
                 mqttHandler.publish(mqttHandler.TOPIC_RELAY_MUTE,"TRUE");
@@ -90,8 +93,9 @@ public class Actuadores extends AppCompatActivity{
     }
 
     @Override
-    protected void onDestroy() {
-        unregisterReceiver(receiverEventoActuador);
+    protected void onDestroy()
+    {
+        unregisterReceiver(actuatorEventReceiver);
         super.onDestroy();
     }
     private void connect()
@@ -102,38 +106,43 @@ public class Actuadores extends AppCompatActivity{
         subscribeToTopic(MqttHandler.TOPIC_ACTUATOR_RELAY_STATE);
         subscribeToTopic(MqttHandler.TOPIC_SMARTPHONES);
     }
-    private void subscribeToTopic(String topic){
+    private void subscribeToTopic(String topic)
+    {
         mqttHandler.subscribe(topic);
     }
-    private void configureBroadcastReceiver() {
+    private void configureBroadcastReceiver()
+    {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_ACTUATOR_STATUS);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
-        registerReceiver(receiverEventoActuador, filterReceive);
+        registerReceiver(actuatorEventReceiver, filterReceive);
     }
 
-    private class ReceptorEventoActuador extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
-
-            for(String actuatorName : intent.getExtras().keySet()) {
+    private class ActuatorEventReceiver extends BroadcastReceiver
+    {
+        public void onReceive(Context context, Intent intent)
+        {
+            for(String actuatorName : intent.getExtras().keySet())
+            {
                 String value = intent.getStringExtra(actuatorName);
                 switch(actuatorName){
                     case "BUZZER":
-                        cambiarEstadoBuzzer(value);
+                        changeStateBuzzer(value);
                         break;
                     case "RELAY":
-                        cambiarEstadoRelay(value);
+                        changeStateRelay(value);
                         break;
                 }
             }
         }
     }
-    private void cambiarEstadoBuzzer(String value){
-        boolean buzeerON = value.equals("1") && !boolBuzzerOn;
-        cbBuzzerStatus.setChecked(buzeerON);
-        boolBuzzerOn = buzeerON;
+    private void changeStateBuzzer(String value)
+    {
+        boolean buzzerON = value.equals(ON);
+        cbBuzzerStatus.setChecked(buzzerON);
     }
-    private void cambiarEstadoRelay(String value){
-        boolean relatON = value.equals("1") && !boolBuzzerOn;
-        cbRelayStatus.setChecked(relatON);
+    private void changeStateRelay(String value)
+    {
+        boolean relayON = value.equals(ON);
+        cbRelayStatus.setChecked(relayON);
     }
 }

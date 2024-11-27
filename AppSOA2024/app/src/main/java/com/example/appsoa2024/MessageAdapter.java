@@ -9,36 +9,42 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
+public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder>
+{
 
     private List<String> messages;
 
-    public MessageAdapter(List<String> messages) {
+    public MessageAdapter(List<String> messages)
+    {
         this.messages = messages;
     }
 
     @NonNull
     @Override
-    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(android.R.layout.simple_list_item_1, parent, false);
         return new MessageViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position)
+    {
         holder.textView.setText(messages.get(position));
     }
 
     @Override
-    public int getItemCount() {
+    public int getItemCount()
+    {
         return messages.size();
     }
 
-    public static class MessageViewHolder extends RecyclerView.ViewHolder {
+    public static class MessageViewHolder extends RecyclerView.ViewHolder
+    {
         TextView textView;
-
-        public MessageViewHolder(@NonNull View itemView) {
+        public MessageViewHolder(@NonNull View itemView)
+        {
             super(itemView);
             textView = itemView.findViewById(android.R.id.text1);
         }

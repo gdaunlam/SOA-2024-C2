@@ -39,41 +39,44 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener 
+{
     private final static float AcelerometerMaxValueToSong = 30;
     private SensorManager sensor;
     private MediaPlayer mplayer;
-
     private MqttHandler mqttHandler;
     public IntentFilter filterReceive;
-    public IntentFilter filterConncetionLost;
+    public IntentFilter filterConnectionLost;
     public IntentFilter filterSensorValues;
     public IntentFilter filterSmartphoneEvent;
-    private ReceptorEventos receiverEventos = new ReceptorEventos();
+    private EventsReceiver receiverEvents = new EventsReceiver();
     private ConnectionLost connectionLost =new ConnectionLost();
-    private ReceptorValoresSensores receiverSensores = new ReceptorValoresSensores();
-    private ReceptorAlarma receiverAlarma = new ReceptorAlarma();
-    private TextView txtUltimaActualizacion;
-    private TextView txtTemperatura;
-    private TextView txtHumedad;
+    private SensorsValuesReceiver receiverSensors = new SensorsValuesReceiver();
+    private AlarmReceiver receiverAlarm = new AlarmReceiver();
+    private TextView txtLastUpdate;
+    private TextView txtTemperature;
+    private TextView txtHumidity;
     private TextView txtCO2;
-    private TextView txtEstadoPuerta;
-    private TextView txtEstadoEmbebido;
+    private TextView txtStateDoor;
+    private TextView txtStateEmbed;
     private CheckBox mqttCheckBox;
     private RecyclerView rvMessages;
     private MessageAdapter messageAdapter;
     private List<String> messages = new ArrayList<>();
-    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>() {{
+    private final static String ORANGE = "#FF9800";
+    private final Hashtable<String, Integer> statesColors = new Hashtable<String, Integer>()
+    {{
         put("LOW", Color.GREEN);
         put("MEDIUM", Color.YELLOW);
-        put("HIGH", Color.parseColor("#FF9800"));
+        put("HIGH", Color.parseColor(ORANGE));
         put("CRITICAL", Color.RED);
     }};
 
     final Handler handler = new Handler();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
@@ -86,12 +89,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //Logica para ir a la pantalla de actuadores
         Button btnIrActuadores = findViewById(R.id.btnIrActuadores);
 
-        btnIrActuadores.setOnClickListener(new View.OnClickListener() {
+        btnIrActuadores.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, Actuadores.class);
+            public void onClick(View v)
+            {
+                Intent intent = new Intent(MainActivity.this, Actuators.class);
                 startActivity(intent);
-
             }
         });
 
@@ -104,7 +108,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 {
                     public void onPrepared(MediaPlayer arg0)
                     {
-                        mplayer.setVolume(1.0f, 1.0f);
+                        double volume = 1.0;
+                        mplayer.setVolume((float) volume, (float) volume);
                     }
                 }
         );
@@ -119,30 +124,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         adjustRecyclerViewHeight();
 
         //Inicializo resto de los textviews
-        txtUltimaActualizacion = (TextView)findViewById(R.id.tvUltimaActualizacion);
-        txtTemperatura = (TextView)findViewById(R.id.tvTemperaturaValor);
+        txtLastUpdate = (TextView)findViewById(R.id.tvUltimaActualizacion);
+        txtTemperature = (TextView)findViewById(R.id.tvTemperaturaValor);
         txtCO2 = (TextView)findViewById(R.id.tvCO2Valor);
-        txtHumedad = (TextView)findViewById(R.id.tvHumedadValor);
-        txtEstadoPuerta = (TextView)findViewById(R.id.tvPuertaValor);
-        txtEstadoEmbebido = (TextView)findViewById(R.id.tvEstado);
-
+        txtHumidity = (TextView)findViewById(R.id.tvHumedadValor);
+        txtStateDoor = (TextView)findViewById(R.id.tvPuertaValor);
+        txtStateEmbed = (TextView)findViewById(R.id.tvEstado);
         mqttCheckBox = (CheckBox)findViewById(R.id.mqttCheckBox);
 
         //Crear instancia MQTT
         mqttHandler = new MqttHandler(getApplicationContext());
         connect();
-        configurarBroadcastReciever();
-        actualizarFechaYHora();
+        configureBroadcastReceiver();
+        updateDateAndHour();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onDestroy()
+    {
         mqttHandler.disconnect();
         super.onDestroy();
         sensor.unregisterListener(this);
-        unregisterReceiver(receiverEventos);
-        unregisterReceiver(receiverSensores);
-        unregisterReceiver(receiverAlarma);
+        unregisterReceiver(receiverEvents);
+        unregisterReceiver(receiverSensors);
+        unregisterReceiver(receiverAlarm);
         unregisterReceiver(connectionLost);
     }
 
@@ -152,23 +157,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         registerSensor();
         super.onResume();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
-        if (mplayer != null) {
-            mplayer.setVolume(1.0f, 1.0f);
+        if (mplayer != null)
+        {
+            double volume = 1.0;
+            mplayer.setVolume((float) volume, (float) volume);
         }
     }
 
-    private void connect() {
-        try {
+    private void connect()
+    {
+        try
+        {
             mqttHandler.connect();
             Toast.makeText(getApplicationContext(),"Conexion establecida",Toast.LENGTH_SHORT).show();
-        } catch (MqttException e) {
+        } catch (MqttException e)
+        {
+            long delayMillis = 500;
             Log.d("Aplicacion",e.getMessage()+ "  "+e.getCause());
-            handler.postDelayed(new Runnable() {
+            handler.postDelayed(new Runnable()
+            {
                 @Override
-                public void run() {
+                public void run()
+                {
                     connect();
                 }
-            }, 500);
+            }, delayMillis);
         }
         mqttHandler.subscribe(MqttHandler.TOPIC_SMARTPHONES);
         mqttHandler.subscribe(MqttHandler.TOPIC_SENSORS_EVENTS);
@@ -176,59 +189,71 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mqttCheckBox.setChecked(true);
     }
 
-    private void configurarBroadcastReciever() {
+    private void configureBroadcastReceiver()
+    {
         filterReceive = new IntentFilter(MqttHandler.ACTION_EVENTS_RECEIVE);
-        filterConncetionLost = new IntentFilter(MqttHandler.ACTION_CONNECTION_LOST);
+        filterConnectionLost = new IntentFilter(MqttHandler.ACTION_CONNECTION_LOST);
         filterSensorValues = new IntentFilter(MqttHandler.ACTION_VALUES_RECEIVE);
         filterSmartphoneEvent = new IntentFilter(MqttHandler.ACTION_EVENTS_SMARTPHONES);
-        filterSmartphoneEvent.addCategory(Intent.CATEGORY_DEFAULT);
 
+        filterSmartphoneEvent.addCategory(Intent.CATEGORY_DEFAULT);
         filterReceive.addCategory(Intent.CATEGORY_DEFAULT);
-        filterConncetionLost.addCategory(Intent.CATEGORY_DEFAULT);
+        filterConnectionLost.addCategory(Intent.CATEGORY_DEFAULT);
         filterSensorValues.addCategory(Intent.CATEGORY_DEFAULT);
 
-        registerReceiver(receiverAlarma,filterSmartphoneEvent);
-        registerReceiver(receiverEventos, filterReceive);
-        registerReceiver(connectionLost,filterConncetionLost);
-        registerReceiver(receiverSensores,filterSensorValues);
+        registerReceiver(receiverAlarm,filterSmartphoneEvent);
+        registerReceiver(receiverEvents, filterReceive);
+        registerReceiver(connectionLost, filterConnectionLost);
+        registerReceiver(receiverSensors,filterSensorValues);
     }
 
-    private void actualizarFechaYHora(){
+    private void updateDateAndHour()
+    {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         String currentDateTime = sdf.format(new Date());
-        txtUltimaActualizacion.setText("Ultima actualizacion: " + currentDateTime);
+        txtLastUpdate.setText("Ultima actualizacion: " + currentDateTime);
     }
 
     //Clases
-    public class ConnectionLost extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
+    public class ConnectionLost extends BroadcastReceiver
+    {
+        public void onReceive(Context context, Intent intent)
+        {
             Toast.makeText(getApplicationContext(),"Conexion Perdida",Toast.LENGTH_SHORT).show();
             mqttCheckBox.setChecked(false);
             connect();
         }
     }
 
-    private class ReceptorAlarma extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
-            if (!mplayer.isPlaying()) {
+    private class AlarmReceiver extends BroadcastReceiver
+    {
+        public void onReceive(Context context, Intent intent)
+        {
+            if (!mplayer.isPlaying())
+            {
                 mplayer.start();
             }
         }
     }
 
-    private class ReceptorEventos extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
-            for (String key : intent.getExtras().keySet()) {
+    private class EventsReceiver extends BroadcastReceiver
+    {
+        public void onReceive(Context context, Intent intent)
+        {
+            for (String key : intent.getExtras().keySet())
+            {
                 String message = intent.getStringExtra(key).split("=")[1];
                 String value = intent.getStringExtra(key).split("=")[0];
 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                 String currentDateTime = sdf.format(new Date());
                 addMessageToRecyclerView(message + " " + currentDateTime);
-                actualizarFechaYHora();
+                updateDateAndHour();
 
-                if (key.equals("STATE") &&  Arrays.asList("critical", "high").contains(value)) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (key.equals("STATE") &&  Arrays.asList("critical", "high").contains(value))
+                {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    {
                         String channelId = "states_notification";
                         CharSequence channelName = "My App Notifications";
                         int importance = NotificationManager.IMPORTANCE_DEFAULT;
@@ -258,23 +283,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void addMessageToRecyclerView(String message) {
-        messages.add(0, message);
-        messageAdapter.notifyItemInserted(0);
-        rvMessages.scrollToPosition(0);
+    private void addMessageToRecyclerView(String message)
+    {
+        int position = 0;
+        messages.add(position, message);
+        messageAdapter.notifyItemInserted(position);
+        rvMessages.scrollToPosition(position);
         adjustRecyclerViewHeight();
     }
-    private void adjustRecyclerViewHeight() {
-        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+    private void adjustRecyclerViewHeight()
+    {
+        rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+        {
             @Override
-            public void onGlobalLayout() {
-                if (rvMessages.getChildCount() > 0) {
-                    // Obtener la altura de un ítem
-                    View listItem = rvMessages.getChildAt(0);
+            public void onGlobalLayout()
+            {
+                int childCount = 0;
+                if (rvMessages.getChildCount() > childCount)
+                {
+                    int index = 0;
+                    int rows = 5;
+                    View listItem = rvMessages.getChildAt(index);
                     int itemHeight = listItem.getHeight();
-
-                    // Calcular la altura total para 5 elementos
-                    int totalHeight = itemHeight * 5;
+                    int totalHeight = itemHeight * rows;
 
                     // Ajustar la altura del RecyclerView
                     ViewGroup.LayoutParams params = rvMessages.getLayoutParams();
@@ -288,34 +319,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    private class ReceptorValoresSensores extends BroadcastReceiver {
-        public void onReceive(Context context, Intent intent) {
-            //Leo todos los extras del intent en un for each
+    private class SensorsValuesReceiver extends BroadcastReceiver
+    {
+        public void onReceive(Context context, Intent intent)
+        {
             runOnUiThread(() -> {
-                for(String extraName: intent.getExtras().keySet()){
+                for(String extraName: intent.getExtras().keySet())
+                {
                     String sensorValue = intent.getStringExtra(extraName);
-                    switch(extraName){
+                    switch(extraName)
+                    {
                         case "CO2":
                             txtCO2.setText(sensorValue + " ppm");
                             break;
                         case "DIST":
-                            if(Float.parseFloat(sensorValue) > 5) {
-                                txtEstadoPuerta.setText("ABIERTA");
-                            } else {
-                                txtEstadoPuerta.setText("CERRADA");
+                            double distance = 5;
+                            if(Float.parseFloat(sensorValue) > (float) distance)
+                            {
+                                txtStateDoor.setText("ABIERTA");
+                            }
+                            else
+                            {
+                                txtStateDoor.setText("CERRADA");
                             }
                             break;
                         case "HUM":
-                            txtHumedad.setText(sensorValue + " %");
+                            txtHumidity.setText(sensorValue + " %");
                             break;
                         case "TEMP":
-                            txtTemperatura.setText(sensorValue + " °C");
+                            txtTemperature.setText(sensorValue + " °C");
                             break;
                         case "STATE":
-                            txtEstadoEmbebido.setText(sensorValue);
+                            txtStateEmbed.setText(sensorValue);
                             Integer color = statesColors.get(sensorValue);
-                            if(color != null) {
-                                txtEstadoEmbebido.setTextColor(color);
+                            if(color != null)
+                            {
+                                txtStateEmbed.setTextColor(color);
                             }
                             break;
                         default:
@@ -323,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             break;
                     }
                 }
-                actualizarFechaYHora();
+                updateDateAndHour();
             });
         }
     }
@@ -334,7 +373,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         int sensorType = event.sensor.getType();
         float[] values = event.values;
         boolean accelerometerActivated = sensorType == Sensor.TYPE_ACCELEROMETER && (Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong);
-        if (accelerometerActivated) {
+        if (accelerometerActivated)
+        {
             mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES,"ALARMA");
         }
     }
