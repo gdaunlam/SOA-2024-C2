@@ -44,16 +44,16 @@ void setColorLed(int red, int green, int blue) {
   analogWrite(PIN_LED_BLUE, blue);
 }
 void setColorLedRed() {
-  setColorLed(255, 0, 0);
+  setColorLed(RED_RED_COLOR_VALUE, RED_GREEN_COLOR_VALUE, RED_BLUE_COLOR_VALUE);
 }
 void setColorLedOrange() {
-  setColorLed(255, 165, 0);
+  setColorLed(ORANGE_RED_COLOR_VALUE, ORANGE_GREEN_COLOR_VALUE, ORANGE_BLUE_COLOR_VALUE);
 }
 void setColorLedYellow() {
-  setColorLed(255, 255, 0);
+  setColorLed(YELLOW_RED_COLOR_VALUE, YELLOW_GREEN_COLOR_VALUE, YELLOW_BLUE_COLOR_VALUE);
 }
 void setColorLedGreen() {
-  setColorLed(0, 255, 0);
+  setColorLed(GREEN_RED_COLOR_VALUE, GREEN_GREEN_COLOR_VALUE, GREEN_BLUE_COLOR_VALUE);
 }
 
 void initActuators() {
