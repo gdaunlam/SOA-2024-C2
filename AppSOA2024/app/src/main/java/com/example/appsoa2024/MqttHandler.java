@@ -77,8 +77,8 @@ public class MqttHandler implements MqttCallback {
     public void publish(String topic, String message) {
         try {
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
-            int qualityOfService = 2;
-            mqttMessage.setQos(qualityOfService);
+            int QUALITY_OF_SERVICE = 2;
+            mqttMessage.setQos(QUALITY_OF_SERVICE);
             client.publish(topic, mqttMessage);
         } catch (MqttException e) {
             e.printStackTrace();
@@ -111,8 +111,8 @@ public class MqttHandler implements MqttCallback {
                 i = new Intent(ACTION_VALUES_RECEIVE);
                 List<String> listValues = new ArrayList<String>(Arrays.asList(messageMqtt.split("\\|")));
                 for (String value : listValues) {
-                    int beginIndex = 0;
-                    String key = value.substring(beginIndex, value.indexOf("="));
+                    int BEGIN_INDEX = 0;
+                    String key = value.substring(BEGIN_INDEX, value.indexOf("="));
                     value = value.substring(value.indexOf("=") + 1);
                     if (key.equals("STATE")) {
                         value = embedStates.get(value); //Reemplazo el numero por el string
@@ -123,8 +123,8 @@ public class MqttHandler implements MqttCallback {
                 break;
             case TOPIC_SENSORS_EVENTS:
                 i = new Intent(ACTION_EVENTS_RECEIVE);
-                int beginIndex = 0;
-                String key = messageMqtt.substring(beginIndex, messageMqtt.indexOf("="));
+                int BEGIN_INDEX = 0;
+                String key = messageMqtt.substring(BEGIN_INDEX, messageMqtt.indexOf("="));
                 String eventMessage = messageMqtt.substring(messageMqtt.indexOf("=") + 1);
                 i.putExtra(key, eventMessage);
                 break;
@@ -142,7 +142,6 @@ public class MqttHandler implements MqttCallback {
                     i.putExtra("type", "ALARMA");
                 }
             default:
-                System.out.println("ERROR: Unknown topic.");
                 break;
 
         }
