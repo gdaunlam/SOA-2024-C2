@@ -44,7 +44,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    private final static float AcelerometerMaxValueToSong = 30;
+    private final static float ACELEROMETER_MAX_VALUE_TO_SONG = 30;
     private SensorManager sensor;
     private MediaPlayer mplayer;
     private MqttHandler mqttHandler;
@@ -105,8 +105,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mplayer.setOnPreparedListener(
                 new MediaPlayer.OnPreparedListener() {
                     public void onPrepared(MediaPlayer arg0) {
-                        double volume = 1.0;
-                        mplayer.setVolume((float) volume, (float) volume);
+                        double VOLUME = 1.0;
+                        mplayer.setVolume((float) VOLUME, (float) VOLUME);
                     }
                 }
         );
@@ -153,8 +153,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         mplayer = MediaPlayer.create(this, R.raw.audio_alarma);
         if (mplayer != null) {
-            double volume = 1.0;
-            mplayer.setVolume((float) volume, (float) volume);
+            double VOLUME = 1.0;
+            mplayer.setVolume((float) VOLUME, (float) VOLUME);
         }
     }
 
@@ -163,14 +163,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mqttHandler.connect();
             Toast.makeText(getApplicationContext(), "Conexion establecida", Toast.LENGTH_SHORT).show();
         } catch (MqttException e) {
-            long delayMillis = 500;
+            long DELAY_MILLIS = 500;
             Log.d("Aplicacion", e.getMessage() + "  " + e.getCause());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     connect();
                 }
-            }, delayMillis);
+            }, DELAY_MILLIS);
         }
         mqttHandler.subscribe(MqttHandler.TOPIC_SMARTPHONES);
         mqttHandler.subscribe(MqttHandler.TOPIC_SENSORS_EVENTS);
@@ -261,10 +261,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void addMessageToRecyclerView(String message) {
-        int position = 0;
-        messages.add(position, message);
-        messageAdapter.notifyItemInserted(position);
-        rvMessages.scrollToPosition(position);
+        int POSITION = 0;
+        messages.add(POSITION, message);
+        messageAdapter.notifyItemInserted(POSITION);
+        rvMessages.scrollToPosition(POSITION);
         adjustRecyclerViewHeight();
     }
 
@@ -272,13 +272,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         rvMessages.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                int childCount = 0;
-                if (rvMessages.getChildCount() > childCount) {
-                    int index = 0;
-                    int rows = 5;
-                    View listItem = rvMessages.getChildAt(index);
+                int CHILD_COUNT = 0;
+                if (rvMessages.getChildCount() > CHILD_COUNT) {
+                    int INDEX = 0;
+                    int ROWS = 5;
+                    View listItem = rvMessages.getChildAt(INDEX);
                     int itemHeight = listItem.getHeight();
-                    int totalHeight = itemHeight * rows;
+                    int totalHeight = itemHeight * ROWS;
 
                     // Ajustar la altura del RecyclerView
                     ViewGroup.LayoutParams params = rvMessages.getLayoutParams();
@@ -302,8 +302,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             txtCO2.setText(sensorValue + " ppm");
                             break;
                         case "DIST":
-                            double distance = 5;
-                            if (Float.parseFloat(sensorValue) > (float) distance) {
+                            double DISTANCE = 5;
+                            if (Float.parseFloat(sensorValue) > (float) DISTANCE) {
                                 txtStateDoor.setText("ABIERTA");
                             } else {
                                 txtStateDoor.setText("CERRADA");
@@ -323,7 +323,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             }
                             break;
                         default:
-                            System.out.println("error Extra del Intent desconocido: " + extraName);
                             break;
                     }
                 }
@@ -336,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
         int sensorType = event.sensor.getType();
         float[] values = event.values;
-        boolean accelerometerActivated = sensorType == Sensor.TYPE_ACCELEROMETER && (Math.abs(values[0]) > AcelerometerMaxValueToSong || Math.abs(values[1]) > AcelerometerMaxValueToSong || Math.abs(values[2]) > AcelerometerMaxValueToSong);
+        boolean accelerometerActivated = sensorType == Sensor.TYPE_ACCELEROMETER && (Math.abs(values[0]) > ACELEROMETER_MAX_VALUE_TO_SONG || Math.abs(values[1]) > ACELEROMETER_MAX_VALUE_TO_SONG || Math.abs(values[2]) > ACELEROMETER_MAX_VALUE_TO_SONG);
         if (accelerometerActivated) {
             mqttHandler.publish(MqttHandler.TOPIC_SMARTPHONES, "ALARMA");
         }

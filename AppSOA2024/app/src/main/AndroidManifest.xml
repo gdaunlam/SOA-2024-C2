@@ -29,7 +29,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.appsoa2024.Actuadores" />
+        <activity android:name="com.example.appsoa2024.Actuators" />
     </application>
 
 </manifest>
